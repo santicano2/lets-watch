@@ -136,18 +136,20 @@ pnpm run web
 - [x] Crear .env.local y agregarlo al .gitignore
 - [x] Crear README.md con plan completo
 
-### 🔥 FASE 1: Configuración de Firebase
-- [ ] Crear proyecto en Firebase Console
-- [ ] Registrar app web y obtener configuración
-- [ ] Configurar Firestore Database
-- [ ] Crear estructura de colecciones (rooms, movies subcollection, votes)
-- [ ] Configurar reglas de seguridad Firestore
-- [ ] Crear servicios Firebase:
-  - [ ] `services/firebase/config.ts` - Inicialización
-  - [ ] `services/firebase/rooms.ts` - CRUD de salas
-  - [ ] `services/firebase/movies.ts` - Películas en sala
-  - [ ] `services/firebase/votes.ts` - Sistema de votación
-- [ ] Crear tipos TypeScript (`types/domain.ts`)
+### ✅ FASE 1: Configuración de Firebase (COMPLETADA)
+- [x] Crear proyecto en Firebase Console
+- [x] Registrar app web y obtener configuración
+- [x] Configurar Firestore Database
+- [x] Crear estructura de colecciones (rooms, movies subcollection, votes)
+- [x] Configurar reglas de seguridad Firestore (modo test - 30 días)
+- [x] Crear servicios Firebase:
+  - [x] `services/firebase/config.ts` - Inicialización
+  - [x] `services/firebase/rooms.ts` - CRUD de salas
+  - [x] `services/firebase/movies.ts` - Películas en sala
+  - [x] `services/firebase/votes.ts` - Sistema de votación
+- [x] Crear tipos TypeScript (`types/domain.ts`)
+- [x] Crear utilidades (`utils/roomCode.ts`)
+- [x] Crear archivo `AGENTS.md` para continuidad de sesión
 
 **Estructura Firestore:**
 ```
@@ -304,4 +306,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 18, 2026 - FASE 0 completada ✅
+**Última actualización**: Marzo 19, 2026 - FASE 1 completada ✅
