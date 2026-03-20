@@ -81,7 +81,7 @@ Ver `README.md` para el plan completo. Progreso actual:
 
 - ✅ **FASE 0**: Setup inicial (Expo + NativeWind + Firebase + estructura)
 - ✅ **FASE 1**: Configuración Firebase (types, utils, services)
-- ⏳ **FASE 2**: Cliente TMDB
+- ✅ **FASE 2**: Cliente TMDB (completo con 8+ funciones)
 - ⏳ **FASE 3**: UI Componentes básicos
 - ⏳ **FASE 4-13**: Pantallas, lógica, features avanzadas
 
@@ -143,9 +143,11 @@ pnpm build:ios
 
 1. ✅ Completar FASE 1 (crear archivos restantes)
 2. ✅ Crear este archivo `AGENTS.md`
-3. ⏳ Actualizar README.md marcando FASE 1 como completada
-4. ⏳ Commit: "feat: FASE 1 completada - Firebase configurado"
-5. ⏳ Esperar confirmación del usuario antes de FASE 2
+3. ✅ Actualizar README.md marcando FASE 1 como completada
+4. ✅ Commit FASE 1: "feat: FASE 1 completada - Firebase configurado"
+5. ✅ Completar FASE 2 - Cliente TMDB
+6. ⏳ Usuario revisará archivos antes de commit
+7. ⏳ Esperar confirmación del usuario antes de FASE 3
 
 ---
 
@@ -170,9 +172,10 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 1 completada
-**Commit actual**: "feat: FASE 1 completada - Firebase configurado"
-**Próxima tarea**: Esperar confirmación del usuario para FASE 2
+**Última actualización**: FASE 2 completada
+**Último commit**: "feat: FASE 1 completada - Firebase configurado"
+**Cambios pendientes de commit**: FASE 2 - Integración TMDB API
+**Próxima tarea**: Usuario revisará FASE 2 antes de commit, luego FASE 3
 
 ---
 

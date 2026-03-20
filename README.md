@@ -164,17 +164,25 @@ votes/{voteId}
   - roomCode, movieId, userId, type ('up'|'down'), createdAt
 ```
 
-### 🎬 FASE 2: Integración TMDB API
-- [ ] Obtener API Key de TMDB
-- [ ] Agregar API key a `.env.local`
-- [ ] Crear cliente TMDB (`services/tmdb/client.ts`):
-  - [ ] `searchMovies(query)` - Buscar películas
-  - [ ] `getMovieDetails(id)` - Detalles completos
-  - [ ] `getMovieCredits(id)` - Obtener actores
-  - [ ] `getMovieProviders(id)` - Plataformas de streaming
-  - [ ] `getPopularMovies()` - Películas populares
-- [ ] Crear tipos TypeScript (`types/tmdb.ts`)
-- [ ] Crear helpers para imágenes TMDB
+### ✅ FASE 2: Integración TMDB API (COMPLETADA)
+- [x] Obtener API Key de TMDB
+- [x] Agregar API key a `.env.local`
+- [x] Crear cliente TMDB (`services/tmdb/client.ts`):
+  - [x] `searchMovies(query)` - Buscar películas
+  - [x] `getMovieDetails(id)` - Detalles completos
+  - [x] `getMovieCredits(id)` - Obtener actores
+  - [x] `getMovieWatchProviders(id)` - Plataformas de streaming
+  - [x] `getPopularMovies()` - Películas populares
+  - [x] `getNowPlayingMovies()` - Películas en cines
+  - [x] `getUpcomingMovies()` - Próximos estrenos
+  - [x] `getMovieRecommendations()` - Recomendaciones
+  - [x] `getSimilarMovies()` - Películas similares
+- [x] Crear tipos TypeScript (`types/tmdb.ts`)
+- [x] Crear helpers para imágenes TMDB (`services/tmdb/config.ts`):
+  - [x] `getTMDBImageUrl()` - URL genérica de imagen
+  - [x] `getPosterUrl()` - URL de poster
+  - [x] `getBackdropUrl()` - URL de backdrop
+  - [x] `getProfileUrl()` - URL de perfil de actor
 
 ### 🏗️ FASE 3: Componentes Base UI
 - [ ] `components/ui/Button.tsx` - Botón con variantes
@@ -306,4 +314,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 19, 2026 - FASE 1 completada ✅
+**Última actualización**: Marzo 20, 2026 - FASE 2 completada ✅
