@@ -1,0 +1,6 @@
+/**
+ * Índice de componentes UI base
+ */
+export { Button } from './Button';
+export { Card } from './Card';
+export { Input } from './Input';

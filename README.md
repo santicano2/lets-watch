@@ -184,13 +184,15 @@ votes/{voteId}
   - [x] `getBackdropUrl()` - URL de backdrop
   - [x] `getProfileUrl()` - URL de perfil de actor
 
-### 🏗️ FASE 3: Componentes Base UI
-- [ ] `components/ui/Button.tsx` - Botón con variantes
-- [ ] `components/ui/Card.tsx` - Tarjeta con bordes/sombras
-- [ ] `components/ui/Input.tsx` - Input con label y error
-- [ ] `components/MovieCard.tsx` - Card de película con poster
-- [ ] `components/MovieVoteCard.tsx` - Card con botones de voto
-- [ ] `components/SearchBar.tsx` - Barra de búsqueda con debounce
+### ✅ FASE 3: Componentes Base UI (COMPLETADA)
+- [x] `components/ui/Button.tsx` - Botón con variantes (primary, secondary, outline, ghost)
+- [x] `components/ui/Card.tsx` - Tarjeta con bordes/sombras (default, elevated)
+- [x] `components/ui/Input.tsx` - Input con label, error y helper text
+- [x] `components/MovieCard.tsx` - Card de película para búsqueda
+- [x] `components/MovieVoteCard.tsx` - Card con botones upvote/downvote
+- [x] `components/SearchBar.tsx` - Barra de búsqueda con debounce (500ms)
+- [x] `components/ui/index.ts` - Barrel exports para UI
+- [x] `components/index.ts` - Barrel exports principales
 
 ### 📱 FASE 4: Pantallas Principales
 - [ ] `app/index.tsx` - Pantalla de bienvenida con CTA
@@ -314,4 +316,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 20, 2026 - FASE 2 completada ✅
+**Última actualización**: Marzo 21, 2026 - FASE 3 completada ✅

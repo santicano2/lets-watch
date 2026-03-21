@@ -82,8 +82,9 @@ Ver `README.md` para el plan completo. Progreso actual:
 - ✅ **FASE 0**: Setup inicial (Expo + NativeWind + Firebase + estructura)
 - ✅ **FASE 1**: Configuración Firebase (types, utils, services)
 - ✅ **FASE 2**: Cliente TMDB (completo con 8+ funciones)
-- ⏳ **FASE 3**: UI Componentes básicos
-- ⏳ **FASE 4-13**: Pantallas, lógica, features avanzadas
+- ✅ **FASE 3**: UI Componentes básicos (Button, Card, Input, MovieCard, etc.)
+- ⏳ **FASE 4**: Pantallas principales
+- ⏳ **FASE 5-13**: Búsqueda, votación, features avanzadas
 
 ---
 
@@ -172,10 +173,10 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 2 completada
+**Última actualización**: FASE 3 completada
 **Último commit**: "feat: FASE 1 completada - Firebase configurado"
-**Cambios pendientes de commit**: FASE 2 - Integración TMDB API
-**Próxima tarea**: Usuario revisará FASE 2 antes de commit, luego FASE 3
+**Cambios pendientes de commit**: FASE 2 + FASE 3
+**Próxima tarea**: Usuario revisará antes de commit, luego FASE 4
 
 ---
 
