@@ -1,39 +1,38 @@
-// Tipos de dominio de la aplicación
+/**
+ * Tipos de dominio de la aplicación
+ * Estructura de datos para Firebase Firestore
+ */
 
-export type RoomStatus = 'open' | 'closed';
+export type RoomStatus = 'voting' | 'closed';
 
 export interface Room {
-  id: string;
-  code: string; // 6 caracteres únicos
-  name: string;
-  hostUserId: string;
-  createdAt: Date | string;
+  code: string; // 6 caracteres únicos (usado como document ID)
+  creatorName: string;
   status: RoomStatus;
-  participants: string[]; // Array de userIds
+  createdAt: Date;
+  participantCount: number;
+  selectedMovieId?: number; // TMDB ID de la película ganadora
 }
 
 export interface RoomMovie {
-  id: string;
-  roomCode: string;
-  tmdbId: number; // ID de TMDB
+  id: number; // TMDB ID (usado como document ID en subcollection)
   title: string;
   posterPath: string | null;
-  backdropPath: string | null;
   releaseDate: string;
+  overview: string;
   addedBy: string; // userId
-  addedAt: Date | string;
+  addedAt: Date;
   upvotes: number;
   downvotes: number;
-  netVotes: number; // upvotes - downvotes (para ordenar)
+  score: number; // upvotes - downvotes (para ordenar)
 }
 
-export type VoteType = 'up' | 'down';
+export type VoteType = 'upvote' | 'downvote';
 
 export interface Vote {
-  id: string;
   roomCode: string;
-  movieId: string;
+  movieId: number; // TMDB ID
   userId: string;
-  type: VoteType;
-  createdAt: Date | string;
+  voteType: VoteType;
+  votedAt: Date;
 }
