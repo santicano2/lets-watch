@@ -83,8 +83,9 @@ Ver `README.md` para el plan completo. Progreso actual:
 - ✅ **FASE 1**: Configuración Firebase (types, utils, services)
 - ✅ **FASE 2**: Cliente TMDB (completo con 8+ funciones)
 - ✅ **FASE 3**: UI Componentes básicos (Button, Card, Input, MovieCard, etc.)
-- ⏳ **FASE 4**: Pantallas principales
-- ⏳ **FASE 5-13**: Búsqueda, votación, features avanzadas
+- ✅ **FASE 4**: Pantallas principales (Welcome, Create, Join, Room)
+- ⏳ **FASE 5**: Búsqueda y selección de películas
+- ⏳ **FASE 6-13**: Votación, detalles, features avanzadas
 
 ---
 
@@ -173,10 +174,10 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 3 completada
-**Último commit**: "feat: FASE 1 completada - Firebase configurado"
-**Cambios pendientes de commit**: FASE 2 + FASE 3
-**Próxima tarea**: Usuario revisará antes de commit, luego FASE 4
+**Última actualización**: FASE 4 completada
+**Último commit**: "feat: FASE 3 completada - Implementación de componentes UI y lógica de búsqueda"
+**Cambios pendientes de commit**: Corrección de types/domain.ts + FASE 4 pantallas
+**Próxima tarea**: Usuario revisará antes de commit, luego FASE 5
 
 ---
 

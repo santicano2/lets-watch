@@ -194,15 +194,17 @@ votes/{voteId}
 - [x] `components/ui/index.ts` - Barrel exports para UI
 - [x] `components/index.ts` - Barrel exports principales
 
-### 📱 FASE 4: Pantallas Principales
-- [ ] `app/index.tsx` - Pantalla de bienvenida con CTA
-- [ ] `app/create.tsx` - Crear sala con nombre y código
-- [ ] `app/join.tsx` - Unirse a sala con código manual
-- [ ] `app/room/[code].tsx` - Pantalla principal de sala con:
-  - [ ] Header con nombre y botón compartir
-  - [ ] Badge de película ganadora
-  - [ ] Lista de películas con votos en tiempo real
-  - [ ] FAB para agregar películas
+### ✅ FASE 4: Pantallas Principales (COMPLETADA)
+- [x] `app/index.tsx` - Pantalla de bienvenida con CTA
+- [x] `app/create.tsx` - Crear sala con nombre del creador
+- [x] `app/join.tsx` - Unirse a sala con código manual (validación + uppercase)
+- [x] `app/room/[code].tsx` - Pantalla principal de sala con:
+  - [x] Header con código, creador y botón compartir
+  - [x] Badge de película ganadora (cuando sala cerrada)
+  - [x] Lista de películas con votación
+  - [x] FAB para agregar películas
+  - [x] Estado vacío cuando no hay películas
+  - [x] Pull-to-refresh
 
 ### 🔍 FASE 5: Búsqueda y Selección de Películas
 - [ ] `app/room/[code]/search.tsx` - Pantalla de búsqueda
@@ -316,4 +318,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 21, 2026 - FASE 3 completada ✅
+**Última actualización**: Marzo 22, 2026 - FASE 4 completada ✅
