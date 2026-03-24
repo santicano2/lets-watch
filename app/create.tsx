@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Button, Input } from '@/components/ui';
-import { createRoom } from '@/services/firebase/rooms';
+import { useRouter } from "expo-router";
+import { Clapperboard, Lightbulb } from "lucide-react-native";
+import React, { useState } from "react";
+import { Alert, ScrollView, Text, View } from "react-native";
+
+import { createRoom } from "@/services/firebase/rooms";
+
+import { Button, Input } from "@/components/ui";
 
 /**
  * Pantalla para crear una nueva sala
@@ -10,30 +13,30 @@ import { createRoom } from '@/services/firebase/rooms';
  */
 export default function CreateRoomScreen() {
   const router = useRouter();
-  const [creatorName, setCreatorName] = useState('');
+  const [creatorName, setCreatorName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleCreateRoom = async () => {
     // Validación
     if (!creatorName.trim()) {
-      setError('Por favor ingresa tu nombre');
+      setError("Por favor ingresa tu nombre");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       const room = await createRoom(creatorName.trim());
-      
+
       // Navegar a la sala creada
       router.push(`/room/${room.code}` as any);
     } catch (err) {
-      console.error('Error creating room:', err);
+      console.error("Error creating room:", err);
       Alert.alert(
-        'Error',
-        'No se pudo crear la sala. Por favor intenta de nuevo.'
+        "Error",
+        "No se pudo crear la sala. Por favor intenta de nuevo.",
       );
     } finally {
       setLoading(false);
@@ -45,9 +48,7 @@ export default function CreateRoomScreen() {
       <View className="flex-1 px-6 pt-12">
         {/* Header */}
         <View className="mb-8">
-          <Text className="text-3xl font-bold text-white mb-2">
-            Crear Sala
-          </Text>
+          <Text className="text-3xl font-bold text-white mb-2">Crear Sala</Text>
           <Text className="text-gray-400">
             Crea una sala y comparte el código con tus amigos
           </Text>
@@ -55,7 +56,9 @@ export default function CreateRoomScreen() {
 
         {/* Ilustración */}
         <View className="items-center mb-8">
-          <Text className="text-6xl mb-4">🎬</Text>
+          <View className="mb-4">
+            <Clapperboard size={64} color="#22c55e" strokeWidth={1.5} />
+          </View>
           <View className="bg-gray-800 rounded-2xl p-6 w-full">
             <Text className="text-center text-gray-400 mb-2">
               Tu código de sala será:
@@ -77,7 +80,7 @@ export default function CreateRoomScreen() {
             value={creatorName}
             onChangeText={(text) => {
               setCreatorName(text);
-              if (error) setError('');
+              if (error) setError("");
             }}
             error={error}
             maxLength={30}
@@ -96,10 +99,16 @@ export default function CreateRoomScreen() {
 
         {/* Info */}
         <View className="mt-8 bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
-          <Text className="text-blue-400 text-sm">
-            💡 <Text className="font-semibold">Tip:</Text> Una vez creada la sala, 
-            podrás compartir el código o link con tus amigos para que se unan.
-          </Text>
+          <View className="flex-row gap-2">
+            <Lightbulb size={20} color="#60a5fa" strokeWidth={1.5} />
+            <View className="flex-1">
+              <Text className="text-blue-400 text-sm">
+                <Text className="font-semibold">Tip:</Text> Una vez creada la
+                sala, podrás compartir el código o link con tus amigos para que
+                se unan.
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
     </ScrollView>

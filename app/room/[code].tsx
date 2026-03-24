@@ -1,19 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { Film, Frown, Lock, Plus, Trophy } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
   Alert,
-  Share,
   RefreshControl,
-} from 'react-native';
-import { useLocalSearchParams, useRouter, Link } from 'expo-router';
-import { getRoomByCode, incrementParticipantCount } from '@/services/firebase/rooms';
-import { getMoviesInRoom } from '@/services/firebase/movies';
-import { MovieVoteCard } from '@/components';
-import { Button } from '@/components/ui';
-import type { Room, RoomMovie } from '@/types/domain';
+  ScrollView,
+  Share,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+import { getMoviesInRoom } from "@/services/firebase/movies";
+import {
+  getRoomByCode,
+  incrementParticipantCount,
+} from "@/services/firebase/rooms";
+import type { Room, RoomMovie } from "@/types/domain";
+
+import { MovieVoteCard } from "@/components";
+import { Button } from "@/components/ui";
 
 /**
  * Pantalla principal de la sala de votación
@@ -35,12 +41,12 @@ export default function RoomScreen() {
 
     try {
       const roomData = await getRoomByCode(roomCode);
-      
+
       if (!roomData) {
         Alert.alert(
-          'Sala no encontrada',
-          'El código de sala no existe o fue eliminado.',
-          [{ text: 'OK', onPress: () => router.back() }]
+          "Sala no encontrada",
+          "El código de sala no existe o fue eliminado.",
+          [{ text: "OK", onPress: () => router.back() }],
         );
         return;
       }
@@ -56,8 +62,8 @@ export default function RoomScreen() {
       const moviesData = await getMoviesInRoom(roomCode);
       setMovies(moviesData);
     } catch (error) {
-      console.error('Error loading room:', error);
-      Alert.alert('Error', 'No se pudo cargar la sala');
+      console.error("Error loading room:", error);
+      Alert.alert("Error", "No se pudo cargar la sala");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -78,15 +84,15 @@ export default function RoomScreen() {
 
     try {
       await Share.share({
-        message: `¡Únete a mi sala de Let's Watch! 🍿\n\nCódigo: ${roomCode}\nLink: letswatch://room/${roomCode}`,
-        title: 'Invitación a Let\'s Watch',
+        message: `¡Únete a mi sala de Let's Watch!\n\nCódigo: ${roomCode}\nLink: letswatch://room/${roomCode}`,
+        title: "Invitación a Let's Watch",
       });
     } catch (error) {
-      console.error('Error sharing:', error);
+      console.error("Error sharing:", error);
     }
   };
 
-  const handleVote = (movieId: number, voteType: 'upvote' | 'downvote') => {
+  const handleVote = (movieId: number, voteType: "upvote" | "downvote") => {
     // TODO: Implementar lógica de votación en FASE 6
     console.log(`Vote ${voteType} for movie ${movieId}`);
   };
@@ -102,8 +108,12 @@ export default function RoomScreen() {
   if (!room) {
     return (
       <View className="flex-1 bg-black items-center justify-center px-6">
-        <Text className="text-6xl mb-4">😕</Text>
-        <Text className="text-white text-xl font-bold mb-2">Sala no encontrada</Text>
+        <View className="mb-4">
+          <Frown size={64} color="#9ca3af" strokeWidth={1.5} />
+        </View>
+        <Text className="text-white text-xl font-bold mb-2">
+          Sala no encontrada
+        </Text>
         <Text className="text-gray-400 text-center mb-6">
           El código de sala no existe o fue eliminado
         </Text>
@@ -112,9 +122,12 @@ export default function RoomScreen() {
     );
   }
 
-  const winnerMovie = room.status === 'closed' && room.selectedMovieId
-    ? movies.find(m => m.id === room.selectedMovieId)
-    : movies.length > 0 ? movies[0] : null;
+  const winnerMovie =
+    room.status === "closed" && room.selectedMovieId
+      ? movies.find((m) => m.id === room.selectedMovieId)
+      : movies.length > 0
+        ? movies[0]
+        : null;
 
   return (
     <View className="flex-1 bg-black">
@@ -126,7 +139,8 @@ export default function RoomScreen() {
               Sala {roomCode}
             </Text>
             <Text className="text-gray-400">
-              por {room.creatorName} · {room.participantCount} participante{room.participantCount !== 1 ? 's' : ''}
+              por {room.creatorName} · {room.participantCount} participante
+              {room.participantCount !== 1 ? "s" : ""}
             </Text>
           </View>
           <TouchableOpacity
@@ -138,26 +152,33 @@ export default function RoomScreen() {
         </View>
 
         {/* Badge de estado */}
-        {room.status === 'closed' && (
+        {room.status === "closed" && (
           <View className="bg-red-500/20 border border-red-500 rounded-lg px-3 py-2 mt-2">
-            <Text className="text-red-400 text-sm font-semibold">
-              🔒 Votación cerrada
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <Lock size={16} color="#f87171" strokeWidth={2} />
+              <Text className="text-red-400 text-sm font-semibold">
+                Votación cerrada
+              </Text>
+            </View>
           </View>
         )}
       </View>
 
       {/* Winner Badge */}
-      {winnerMovie && room.status === 'closed' && (
+      {winnerMovie && room.status === "closed" && (
         <View className="bg-gradient-to-r from-green-500/20 to-blue-500/20 border-b border-green-500/30 px-6 py-4">
-          <Text className="text-green-400 font-bold text-lg mb-1">
-            🏆 Película Ganadora
-          </Text>
+          <View className="flex-row items-center gap-2 mb-1">
+            <Trophy size={20} color="#22c55e" strokeWidth={2} />
+            <Text className="text-green-400 font-bold text-lg">
+              Película Ganadora
+            </Text>
+          </View>
           <Text className="text-white text-xl font-bold">
             {winnerMovie.title}
           </Text>
           <Text className="text-gray-400">
-            Score: {winnerMovie.score > 0 ? '+' : ''}{winnerMovie.score}
+            Score: {winnerMovie.score > 0 ? "+" : ""}
+            {winnerMovie.score}
           </Text>
         </View>
       )}
@@ -172,14 +193,16 @@ export default function RoomScreen() {
       >
         {movies.length === 0 ? (
           <View className="items-center justify-center py-12">
-            <Text className="text-6xl mb-4">🎬</Text>
+            <View className="mb-4">
+              <Film size={64} color="#9ca3af" strokeWidth={1.5} />
+            </View>
             <Text className="text-white text-xl font-bold mb-2 text-center">
               No hay películas todavía
             </Text>
             <Text className="text-gray-400 text-center mb-6">
               Sé el primero en agregar una película a la sala
             </Text>
-            {room.status === 'voting' && (
+            {room.status === "voting" && (
               <Link href={`/room/${roomCode}/search` as any} asChild>
                 <Button>Agregar Película</Button>
               </Link>
@@ -192,11 +215,11 @@ export default function RoomScreen() {
                 key={movie.id}
                 movie={movie}
                 userVote={null} // TODO: Implementar en FASE 6
-                onUpvote={() => handleVote(movie.id, 'upvote')}
-                onDownvote={() => handleVote(movie.id, 'downvote')}
+                onUpvote={() => handleVote(movie.id, "upvote")}
+                onDownvote={() => handleVote(movie.id, "downvote")}
                 onPress={() => {
                   // TODO: Abrir modal de detalles en FASE 7
-                  console.log('Show details for', movie.id);
+                  console.log("Show details for", movie.id);
                 }}
               />
             ))}
@@ -205,13 +228,13 @@ export default function RoomScreen() {
       </ScrollView>
 
       {/* FAB - Agregar película */}
-      {room.status === 'voting' && movies.length > 0 && (
+      {room.status === "voting" && movies.length > 0 && (
         <Link href={`/room/${roomCode}/search` as any} asChild>
           <TouchableOpacity
             className="absolute bottom-6 right-6 bg-green-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
             activeOpacity={0.8}
           >
-            <Text className="text-white text-3xl">+</Text>
+            <Plus size={32} color="white" strokeWidth={2} />
           </TouchableOpacity>
         </Link>
       )}

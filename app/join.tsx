@@ -1,51 +1,52 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Button, Input } from '@/components/ui';
-import { getRoomByCode } from '@/services/firebase/rooms';
-import { isValidRoomCode } from '@/utils/roomCode';
+import { useRouter } from "expo-router";
+import { Lightbulb, Link2 } from "lucide-react-native";
+import React, { useState } from "react";
+import { Alert, ScrollView, Text, View } from "react-native";
+
+import { getRoomByCode } from "@/services/firebase/rooms";
+import { isValidRoomCode } from "@/utils/roomCode";
+
+import { Button, Input } from "@/components/ui";
 
 /**
  * Pantalla para unirse a una sala existente con código
  */
 export default function JoinRoomScreen() {
   const router = useRouter();
-  const [roomCode, setRoomCode] = useState('');
+  const [roomCode, setRoomCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleJoinRoom = async () => {
     // Validación
     const code = roomCode.trim().toUpperCase();
-    
+
     if (!code) {
-      setError('Por favor ingresa un código');
+      setError("Por favor ingresa un código");
       return;
     }
 
     if (!isValidRoomCode(code)) {
-      setError('El código debe tener 6 caracteres');
+      setError("El código debe tener 6 caracteres");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       const room = await getRoomByCode(code);
 
       if (!room) {
-        setError('Sala no encontrada. Verifica el código.');
+        setError("Sala no encontrada. Verifica el código.");
         setLoading(false);
         return;
       }
 
-      if (room.status === 'closed') {
-        Alert.alert(
-          'Sala cerrada',
-          'Esta sala ya finalizó la votación.',
-          [{ text: 'OK' }]
-        );
+      if (room.status === "closed") {
+        Alert.alert("Sala cerrada", "Esta sala ya finalizó la votación.", [
+          { text: "OK" },
+        ]);
         setLoading(false);
         return;
       }
@@ -53,10 +54,10 @@ export default function JoinRoomScreen() {
       // Navegar a la sala
       router.push(`/room/${code}` as any);
     } catch (err) {
-      console.error('Error joining room:', err);
+      console.error("Error joining room:", err);
       Alert.alert(
-        'Error',
-        'No se pudo unir a la sala. Por favor intenta de nuevo.'
+        "Error",
+        "No se pudo unir a la sala. Por favor intenta de nuevo.",
       );
     } finally {
       setLoading(false);
@@ -78,7 +79,7 @@ export default function JoinRoomScreen() {
 
         {/* Ilustración */}
         <View className="items-center mb-8">
-          <Text className="text-6xl mb-4">🔗</Text>
+          <Link2 size={64} color="#3b82f6" strokeWidth={1.5} />
         </View>
 
         {/* Form */}
@@ -90,7 +91,7 @@ export default function JoinRoomScreen() {
             onChangeText={(text) => {
               // Auto-uppercase y limitar a 6 caracteres
               setRoomCode(text.toUpperCase());
-              if (error) setError('');
+              if (error) setError("");
             }}
             error={error}
             maxLength={6}
@@ -111,11 +112,16 @@ export default function JoinRoomScreen() {
 
         {/* Info */}
         <View className="mt-8 bg-green-500/10 border border-green-500/30 rounded-xl p-4">
-          <Text className="text-green-400 text-sm">
-            💡 <Text className="font-semibold">Tip:</Text> El código de sala 
-            tiene 6 caracteres (letras y números). También puedes usar el link 
-            que te compartieron.
-          </Text>
+          <View className="flex-row gap-2">
+            <Lightbulb size={20} color="#22c55e" strokeWidth={1.5} />
+            <View className="flex-1">
+              <Text className="text-green-400 text-sm">
+                <Text className="font-semibold">Tip:</Text> El código de sala
+                tiene 6 caracteres (letras y números). También puedes usar el
+                link que te compartieron.
+              </Text>
+            </View>
+          </View>
         </View>
 
         {/* Ejemplo visual */}

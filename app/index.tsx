@@ -1,7 +1,9 @@
-import React from 'react';
-import { View, Text, Image } from 'react-native';
-import { Link } from 'expo-router';
-import { Button } from '@/components/ui';
+import { Link } from "expo-router";
+import { Film, Popcorn, Users, Zap } from "lucide-react-native";
+import React from "react";
+import { Text, View } from "react-native";
+
+import { Button } from "@/components/ui";
 
 /**
  * Pantalla de bienvenida
@@ -13,10 +15,12 @@ export default function WelcomeScreen() {
       {/* Hero Section */}
       <View className="flex-1 justify-center items-center px-6">
         {/* Logo/Icon */}
-        <View className="mb-8">
-          <Text className="text-6xl mb-4 text-center">🍿</Text>
+        <View className="mb-8 items-center">
+          <View className="mb-4">
+            <Popcorn size={72} color="#22c55e" strokeWidth={1.5} />
+          </View>
           <Text className="text-4xl font-bold text-white text-center mb-2">
-            Let's Watch
+            Let&apos;s Watch
           </Text>
           <Text className="text-lg text-gray-400 text-center">
             Voten juntos, vean mejor
@@ -48,21 +52,27 @@ export default function WelcomeScreen() {
       <View className="px-6 pb-12">
         <View className="flex-row justify-around">
           <View className="items-center flex-1">
-            <Text className="text-2xl mb-2">🎬</Text>
+            <View className="mb-2">
+              <Film size={32} color="#9ca3af" strokeWidth={1.5} />
+            </View>
             <Text className="text-xs text-gray-400 text-center">
               Miles de películas
             </Text>
           </View>
-          
+
           <View className="items-center flex-1">
-            <Text className="text-2xl mb-2">⚡</Text>
+            <View className="mb-2">
+              <Zap size={32} color="#9ca3af" strokeWidth={1.5} />
+            </View>
             <Text className="text-xs text-gray-400 text-center">
               Tiempo real
             </Text>
           </View>
-          
+
           <View className="items-center flex-1">
-            <Text className="text-2xl mb-2">👥</Text>
+            <View className="mb-2">
+              <Users size={32} color="#9ca3af" strokeWidth={1.5} />
+            </View>
             <Text className="text-xs text-gray-400 text-center">
               Voten juntos
             </Text>

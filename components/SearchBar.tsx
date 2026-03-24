@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity, Text } from 'react-native';
+import { Search, X } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import { TextInput, TouchableOpacity, View } from "react-native";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -12,11 +13,11 @@ interface SearchBarProps {
  * Espera que el usuario deje de escribir antes de ejecutar la búsqueda
  */
 export function SearchBar({
-  placeholder = 'Buscar películas...',
+  placeholder = "Buscar películas...",
   onSearch,
   debounceMs = 500,
 }: SearchBarProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
 
   // Debounce: ejecutar búsqueda después de que el usuario deje de escribir
   useEffect(() => {
@@ -28,13 +29,13 @@ export function SearchBar({
   }, [query, debounceMs, onSearch]);
 
   const handleClear = () => {
-    setQuery('');
+    setQuery("");
   };
 
   return (
     <View className="flex-row items-center gap-2 bg-white dark:bg-gray-800 rounded-xl px-4 py-3 border-2 border-gray-300 dark:border-gray-600">
       {/* Icono de búsqueda */}
-      <Text className="text-xl text-gray-400">🔍</Text>
+      <Search size={20} color="#9ca3af" strokeWidth={2} />
 
       {/* Input */}
       <TextInput
@@ -54,7 +55,7 @@ export function SearchBar({
           className="w-6 h-6 items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full"
           activeOpacity={0.7}
         >
-          <Text className="text-gray-600 dark:text-gray-300 text-xs">✕</Text>
+          <X size={14} color="#6b7280" strokeWidth={2} />
         </TouchableOpacity>
       )}
     </View>
