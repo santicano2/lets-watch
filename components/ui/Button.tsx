@@ -6,7 +6,7 @@ import {
   type TouchableOpacityProps,
 } from 'react-native';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends TouchableOpacityProps {
@@ -39,6 +39,7 @@ export function Button({
     secondary: 'bg-blue-500 active:bg-blue-600',
     outline: 'bg-transparent border-2 border-green-500 active:bg-green-500/10',
     ghost: 'bg-transparent active:bg-gray-100 dark:active:bg-gray-800',
+    destructive: 'bg-red-500 active:bg-red-600',
   };
 
   // Tamaños
@@ -54,6 +55,7 @@ export function Button({
     secondary: 'text-white font-semibold',
     outline: 'text-green-500 font-semibold',
     ghost: 'text-gray-900 dark:text-white font-medium',
+    destructive: 'text-white font-semibold',
   };
 
   const textSizeStyles = {

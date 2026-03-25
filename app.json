@@ -15,7 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.letswatch.app"
+      "bundleIdentifier": "com.letswatch.app",
+      "infoPlist": {
+        "UIViewControllerBasedStatusBarAppearance": false,
+        "UIStatusBarHidden": true
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +30,15 @@
       },
       "package": "com.letswatch.app",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "navigationBar": {
+        "visible": false
+      },
+      "statusBar": {
+        "hidden": true,
+        "backgroundColor": "#00000000",
+        "translucent": true
+      }
     },
     "web": {
       "output": "static",

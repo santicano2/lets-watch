@@ -1,14 +1,16 @@
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { Link, useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { Film, Frown, Lock, Plus, Trophy } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Alert,
   RefreshControl,
   ScrollView,
+  FlatList,
   Share,
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
 } from "react-native";
 
 import { getMoviesInRoom } from "@/services/firebase/movies";
@@ -34,9 +36,11 @@ export default function RoomScreen() {
   const [movies, setMovies] = useState<RoomMovie[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
+  const [hasJoined, setHasJoined] = useState(false);
 
-  // Cargar datos de la sala
-  const loadRoomData = async () => {
+  // Cargar datos de la sala (sin incrementar participantes)
+  const loadRoomData = useCallback(async (incrementCount = false) => {
     if (!roomCode) return;
 
     try {
@@ -53,9 +57,10 @@ export default function RoomScreen() {
 
       setRoom(roomData);
 
-      // Incrementar contador de participantes (primera vez)
-      if (!room) {
+      // Incrementar contador de participantes solo la primera vez
+      if (incrementCount && !hasJoined) {
         await incrementParticipantCount(roomCode);
+        setHasJoined(true);
       }
 
       // Cargar películas
@@ -68,15 +73,25 @@ export default function RoomScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [roomCode, hasJoined, router]);
 
+  // Cargar datos al montar (primera vez, incrementar contador)
   useEffect(() => {
-    loadRoomData();
+    loadRoomData(true);
   }, [roomCode]);
+
+  // Recargar datos cada vez que la pantalla gana foco (sin incrementar contador)
+  useFocusEffect(
+    useCallback(() => {
+      if (hasJoined) {
+        loadRoomData(false);
+      }
+    }, [loadRoomData, hasJoined])
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadRoomData();
+    loadRoomData(false);
   };
 
   const handleShare = async () => {
@@ -95,6 +110,13 @@ export default function RoomScreen() {
   const handleVote = (movieId: number, voteType: "upvote" | "downvote") => {
     // TODO: Implementar lógica de votación en FASE 6
     console.log(`Vote ${voteType} for movie ${movieId}`);
+  };
+
+  const handleScroll = (event: any) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const cardWidth = Dimensions.get('window').width * 0.75 + 16;
+    const index = Math.round(scrollPosition / cardWidth);
+    setCurrentMovieIndex(index);
   };
 
   if (loading) {
@@ -186,13 +208,12 @@ export default function RoomScreen() {
       {/* Lista de películas */}
       <ScrollView
         className="flex-1"
-        contentContainerClassName="px-6 py-6"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
         {movies.length === 0 ? (
-          <View className="items-center justify-center py-12">
+          <View className="items-center justify-center py-12 px-6">
             <View className="mb-4">
               <Film size={64} color="#9ca3af" strokeWidth={1.5} />
             </View>
@@ -209,20 +230,47 @@ export default function RoomScreen() {
             )}
           </View>
         ) : (
-          <View className="gap-4">
-            {movies.map((movie) => (
-              <MovieVoteCard
-                key={movie.id}
-                movie={movie}
-                userVote={null} // TODO: Implementar en FASE 6
-                onUpvote={() => handleVote(movie.id, "upvote")}
-                onDownvote={() => handleVote(movie.id, "downvote")}
-                onPress={() => {
-                  // TODO: Abrir modal de detalles en FASE 7
-                  console.log("Show details for", movie.id);
-                }}
-              />
-            ))}
+          <View className="py-6">
+            {/* Carousel de películas */}
+            <FlatList
+              data={movies}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={Dimensions.get('window').width * 0.75 + 16}
+              decelerationRate="fast"
+              contentContainerStyle={{ paddingHorizontal: 24 }}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              renderItem={({ item: movie }) => (
+                <View style={{ width: Dimensions.get('window').width * 0.75, marginRight: 16 }}>
+                  <MovieVoteCard
+                    movie={movie}
+                    userVote={null} // TODO: Implementar en FASE 6
+                    onUpvote={() => handleVote(movie.id, "upvote")}
+                    onDownvote={() => handleVote(movie.id, "downvote")}
+                    onPress={() => {
+                      // TODO: Abrir modal de detalles en FASE 7
+                      console.log("Show details for", movie.id);
+                    }}
+                  />
+                </View>
+              )}
+              keyExtractor={(item) => item.id.toString()}
+            />
+            
+            {/* Indicador de posición */}
+            {movies.length > 1 && (
+              <View className="flex-row justify-center gap-2 mt-4">
+                {movies.map((_, index) => (
+                  <View
+                    key={index}
+                    className={`h-2 rounded-full transition-all ${
+                      index === currentMovieIndex ? 'w-6 bg-green-500' : 'w-2 bg-gray-600'
+                    }`}
+                  />
+                ))}
+              </View>
+            )}
           </View>
         )}
       </ScrollView>

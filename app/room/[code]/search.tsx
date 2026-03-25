@@ -1,20 +1,19 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, TrendingUp } from "lucide-react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState, useCallback, useEffect } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
+  View,
   Text,
   TouchableOpacity,
-  View,
-} from "react-native";
-
-import { addMovieToRoom } from "@/services/firebase/movies";
-import { getPopularMovies, searchMovies } from "@/services/tmdb/client";
-import type { TMDBMovie } from "@/types/tmdb";
-
-import { MovieCard, SearchBar } from "@/components";
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Dimensions,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ArrowLeft, TrendingUp } from 'lucide-react-native';
+import { SearchBar, MovieCard, MovieDetailsModal } from '@/components';
+import { searchMovies, getPopularMovies } from '@/services/tmdb/client';
+import { addMovieToRoom, getMoviesInRoom, removeMovieFromRoom } from '@/services/firebase/movies';
+import type { TMDBMovie } from '@/types/tmdb';
 
 /**
  * Pantalla de búsqueda y selección de películas
@@ -25,25 +24,36 @@ export default function SearchMovieScreen() {
   const router = useRouter();
   const roomCode = params.code?.toUpperCase();
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [movies, setMovies] = useState<TMDBMovie[]>([]);
+  const [existingMovieIds, setExistingMovieIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [addingMovieId, setAddingMovieId] = useState<number | null>(null);
+  const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
-  // Cargar películas populares al inicio
+  // Cargar películas populares y películas ya agregadas al inicio
   useEffect(() => {
-    loadPopularMovies();
+    loadInitialData();
   }, []);
 
-  const loadPopularMovies = async () => {
+  const loadInitialData = async () => {
+    if (!roomCode) return;
+
     try {
       setInitialLoading(true);
-      const response = await getPopularMovies(1);
-      setMovies(response.results);
+      
+      // Cargar en paralelo: películas populares + películas ya en la sala
+      const [popularResponse, roomMovies] = await Promise.all([
+        getPopularMovies(1),
+        getMoviesInRoom(roomCode),
+      ]);
+
+      setMovies(popularResponse.results);
+      setExistingMovieIds(new Set(roomMovies.map(m => m.id)));
     } catch (error) {
-      console.error("Error loading popular movies:", error);
-      Alert.alert("Error", "No se pudieron cargar las películas populares");
+      console.error('Error loading initial data:', error);
+      Alert.alert('Error', 'No se pudieron cargar las películas');
     } finally {
       setInitialLoading(false);
     }
@@ -53,9 +63,14 @@ export default function SearchMovieScreen() {
   const handleSearch = useCallback(async (searchQuery: string) => {
     const trimmedQuery = searchQuery.trim();
 
-    // Si no hay query, mostrar populares
-    if (!trimmedQuery) {
-      loadPopularMovies();
+    // Si no hay query, no recargar (mantener cache de populares)
+    if (!trimmedQuery && movies.length > 0) {
+      return;
+    }
+
+    // Si borra todo el texto y no hay películas, recargar populares
+    if (!trimmedQuery && movies.length === 0) {
+      loadInitialData();
       return;
     }
 
@@ -64,20 +79,20 @@ export default function SearchMovieScreen() {
       const response = await searchMovies(trimmedQuery);
       setMovies(response.results);
     } catch (error) {
-      console.error("Error searching movies:", error);
-      Alert.alert("Error", "No se pudo realizar la búsqueda");
+      console.error('Error searching movies:', error);
+      Alert.alert('Error', 'No se pudo realizar la búsqueda');
       setMovies([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [movies.length, roomCode]);
 
   // Agregar película a la sala
-  const handleAddMovie = async (movie: TMDBMovie) => {
-    if (!roomCode) return;
+  const handleAddMovie = async () => {
+    if (!roomCode || !selectedMovie) return;
 
     try {
-      setAddingMovieId(movie.id);
+      setModalLoading(true);
 
       // TODO FASE 6: Implementar hook useUser para obtener userId persistente
       // Por ahora generamos un ID temporal basado en timestamp
@@ -86,41 +101,82 @@ export default function SearchMovieScreen() {
       await addMovieToRoom(
         roomCode,
         {
-          id: movie.id,
-          title: movie.title,
-          posterPath: movie.poster_path,
-          releaseDate: movie.release_date,
-          overview: movie.overview,
+          id: selectedMovie.id,
+          title: selectedMovie.title,
+          posterPath: selectedMovie.poster_path,
+          releaseDate: selectedMovie.release_date,
+          overview: selectedMovie.overview,
         },
-        tempUserId,
+        tempUserId
       );
 
-      Alert.alert(
-        "Película agregada",
-        `"${movie.title}" fue agregada a la sala`,
-        [
-          {
-            text: "Agregar otra",
-            style: "cancel",
-          },
-          {
-            text: "Volver a la sala",
-            onPress: () => router.back(),
-          },
-        ],
-      );
+      // Actualizar la lista de películas existentes
+      setExistingMovieIds(prev => new Set([...prev, selectedMovie.id]));
+      
+      // Cerrar modal
+      setSelectedMovie(null);
     } catch (error: any) {
-      console.error("Error adding movie:", error);
-
+      console.error('Error adding movie:', error);
+      
       // Mostrar mensaje específico si la película ya existe
-      if (error.message?.includes("ya existe")) {
-        Alert.alert("Película duplicada", error.message);
+      if (error.message?.includes('ya existe')) {
+        Alert.alert('Película duplicada', error.message);
       } else {
-        Alert.alert("Error", "No se pudo agregar la película");
+        Alert.alert('Error', 'No se pudo agregar la película');
       }
     } finally {
-      setAddingMovieId(null);
+      setModalLoading(false);
     }
+  };
+
+  // Eliminar película de la sala
+  const handleRemoveMovie = async () => {
+    if (!roomCode || !selectedMovie) return;
+
+    try {
+      setModalLoading(true);
+
+      await removeMovieFromRoom(roomCode, selectedMovie.id);
+
+      // Actualizar la lista de películas existentes
+      setExistingMovieIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(selectedMovie.id);
+        return newSet;
+      });
+      
+      // Cerrar modal
+      setSelectedMovie(null);
+    } catch (error: any) {
+      console.error('Error removing movie:', error);
+      Alert.alert('Error', 'No se pudo eliminar la película');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const screenWidth = Dimensions.get('window').width;
+  const cardWidth = (screenWidth - 48 - 16) / 2; // 48 = padding horizontal total, 16 = gap
+
+  const renderMovieItem = ({ item: movie }: { item: TMDBMovie }) => {
+    const isAdded = existingMovieIds.has(movie.id);
+    
+    return (
+      <View style={{ width: cardWidth, marginBottom: 16 }}>
+        <MovieCard
+          movie={movie}
+          variant="vertical"
+          onPress={() => setSelectedMovie(movie)}
+        />
+        
+        {/* Badge si ya está agregada */}
+        {isAdded && (
+          <View className="absolute top-2 right-2 bg-green-500 rounded-full px-2 py-1">
+            <Text className="text-white text-xs font-semibold">Agregada</Text>
+          </View>
+        )}
+      </View>
+    );
   };
 
   return (
@@ -154,9 +210,9 @@ export default function SearchMovieScreen() {
       </View>
 
       {/* Content */}
-      <ScrollView className="flex-1">
-        <View className="px-6 py-6">
-          {/* Header de sección */}
+      <View className="flex-1 px-6">
+        {/* Header de sección */}
+        <View className="pt-6">
           {!query && (
             <View className="flex-row items-center gap-2 mb-4">
               <TrendingUp size={20} color="#22c55e" strokeWidth={2} />
@@ -168,60 +224,63 @@ export default function SearchMovieScreen() {
 
           {query && (
             <Text className="text-lg font-semibold text-white mb-4">
-              Resultados para &quot;{query}&quot;
+              Resultados para "{query}"
             </Text>
           )}
-
-          {/* Loading inicial */}
-          {initialLoading && (
-            <View className="items-center justify-center py-12">
-              <ActivityIndicator size="large" color="#22c55e" />
-              <Text className="text-gray-400 mt-4">Cargando películas...</Text>
-            </View>
-          )}
-
-          {/* Loading búsqueda */}
-          {loading && !initialLoading && (
-            <View className="items-center justify-center py-12">
-              <ActivityIndicator size="large" color="#3b82f6" />
-              <Text className="text-gray-400 mt-4">Buscando...</Text>
-            </View>
-          )}
-
-          {/* Sin resultados */}
-          {!loading && !initialLoading && movies.length === 0 && query && (
-            <View className="items-center justify-center py-12">
-              <Text className="text-white text-xl font-bold mb-2">
-                Sin resultados
-              </Text>
-              <Text className="text-gray-400 text-center">
-                No se encontraron películas para &quot;{query}&quot;
-              </Text>
-            </View>
-          )}
-
-          {/* Grid de películas */}
-          {!initialLoading && movies.length > 0 && (
-            <View className="flex-row flex-wrap gap-4">
-              {movies.map((movie) => (
-                <View key={movie.id} className="w-[48%]">
-                  <MovieCard
-                    movie={movie}
-                    variant="vertical"
-                    onPress={() => handleAddMovie(movie)}
-                    disabled={addingMovieId === movie.id}
-                  />
-                  {addingMovieId === movie.id && (
-                    <View className="absolute inset-0 bg-black/50 items-center justify-center rounded-xl">
-                      <ActivityIndicator size="small" color="white" />
-                    </View>
-                  )}
-                </View>
-              ))}
-            </View>
-          )}
         </View>
-      </ScrollView>
+
+        {/* Loading inicial */}
+        {initialLoading && (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#22c55e" />
+            <Text className="text-gray-400 mt-4">Cargando películas...</Text>
+          </View>
+        )}
+
+        {/* Loading búsqueda */}
+        {loading && !initialLoading && (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#3b82f6" />
+            <Text className="text-gray-400 mt-4">Buscando...</Text>
+          </View>
+        )}
+
+        {/* Sin resultados */}
+        {!loading && !initialLoading && movies.length === 0 && query && (
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-white text-xl font-bold mb-2">
+              Sin resultados
+            </Text>
+            <Text className="text-gray-400 text-center">
+              No se encontraron películas para "{query}"
+            </Text>
+          </View>
+        )}
+
+        {/* Grid de películas con FlatList */}
+        {!initialLoading && movies.length > 0 && (
+          <FlatList
+            data={movies}
+            numColumns={2}
+            columnWrapperStyle={{ justifyContent: 'space-between' }}
+            renderItem={renderMovieItem}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={{ paddingBottom: 24, paddingTop: 8 }}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
+
+      {/* Modal de detalles */}
+      <MovieDetailsModal
+        movie={selectedMovie}
+        visible={selectedMovie !== null}
+        onClose={() => setSelectedMovie(null)}
+        onAdd={handleAddMovie}
+        onRemove={handleRemoveMovie}
+        isAdded={selectedMovie ? existingMovieIds.has(selectedMovie.id) : false}
+        isLoading={modalLoading}
+      />
     </View>
   );
 }
