@@ -1,11 +1,17 @@
+// Configurar Reanimated PRIMERO (antes de importarlo)
+import "../reanimated.config";
+
+import * as NavigationBar from "expo-navigation-bar";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Platform } from "react-native";
-import * as NavigationBar from "expo-navigation-bar";
-import "react-native-reanimated";
 import { useEffect } from "react";
+import { LogBox, Platform } from "react-native";
 
+import "react-native-reanimated";
 import "../global.css";
+
+// Silenciar cualquier warning restante de Reanimated
+LogBox.ignoreLogs(["[Reanimated]"]);
 
 export default function RootLayout() {
   // Ocultar barra de navegación en Android

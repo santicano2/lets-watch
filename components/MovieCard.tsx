@@ -51,8 +51,8 @@ export function MovieCard({
           )}
         </View>
 
-        {/* Info */}
-        <View className="p-3 gap-1">
+        {/* Info - altura fija para consistencia */}
+        <View className="p-3 h-20 justify-between">
           <Text className="text-sm font-semibold text-white" numberOfLines={2}>
             {movie.title}
           </Text>

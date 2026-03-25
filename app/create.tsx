@@ -30,8 +30,8 @@ export default function CreateRoomScreen() {
     try {
       const room = await createRoom(creatorName.trim());
 
-      // Navegar a la sala creada
-      router.push(`/room/${room.code}` as any);
+      // Navegar a la sala creada (isCreator=true para no incrementar contador)
+      router.push(`/room/${room.code}?isCreator=true` as any);
     } catch (err) {
       console.error("Error creating room:", err);
       Alert.alert(

@@ -1,4 +1,4 @@
-import { ThumbsDown, ThumbsUp } from "lucide-react-native";
+import { ThumbsDown, ThumbsUp, Trash2 } from "lucide-react-native";
 import React from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
@@ -10,6 +10,7 @@ interface MovieVoteCardProps {
   userVote?: "upvote" | "downvote" | null;
   onUpvote: () => void;
   onDownvote: () => void;
+  onDelete?: () => void;
   onPress?: () => void;
 }
 
@@ -22,6 +23,7 @@ export function MovieVoteCard({
   userVote,
   onUpvote,
   onDownvote,
+  onDelete,
   onPress,
 }: MovieVoteCardProps) {
   const posterUrl = getPosterUrl(movie.posterPath);
@@ -44,6 +46,17 @@ export function MovieVoteCard({
             <View className="w-full h-full items-center justify-center">
               <Text className="text-gray-400">Sin imagen</Text>
             </View>
+          )}
+
+          {/* Botón de eliminar */}
+          {onDelete && (
+            <TouchableOpacity
+              onPress={onDelete}
+              className="absolute top-2 right-2 bg-red-500 rounded-full w-8 h-8 items-center justify-center"
+              activeOpacity={0.8}
+            >
+              <Trash2 size={16} color="white" strokeWidth={2} />
+            </TouchableOpacity>
           )}
         </View>
 

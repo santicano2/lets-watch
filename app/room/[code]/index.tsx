@@ -1,19 +1,27 @@
-import { Link, useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import {
+  Link,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import { Film, Frown, Lock, Plus, Trophy } from "lucide-react-native";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Dimensions,
+  FlatList,
   RefreshControl,
   ScrollView,
-  FlatList,
   Share,
   Text,
   TouchableOpacity,
   View,
-  Dimensions,
 } from "react-native";
 
-import { getMoviesInRoom } from "@/services/firebase/movies";
+import {
+  getMoviesInRoom,
+  removeMovieFromRoom,
+} from "@/services/firebase/movies";
 import {
   getRoomByCode,
   incrementParticipantCount,
@@ -28,65 +36,79 @@ import { Button } from "@/components/ui";
  * Muestra las películas agregadas y permite votar
  */
 export default function RoomScreen() {
-  const params = useLocalSearchParams<{ code: string }>();
+  const params = useLocalSearchParams<{ code: string; isCreator?: string }>();
   const router = useRouter();
   const roomCode = params.code?.toUpperCase();
+  const isCreator = params.isCreator === "true";
 
   const [room, setRoom] = useState<Room | null>(null);
   const [movies, setMovies] = useState<RoomMovie[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
-  const [hasJoined, setHasJoined] = useState(false);
 
-  // Cargar datos de la sala (sin incrementar participantes)
-  const loadRoomData = useCallback(async (incrementCount = false) => {
-    if (!roomCode) return;
+  // Refs para trackear estado
+  const hasIncrementedRef = useRef(false); // Si ya se incrementó el contador
+  const hasLoadedRef = useRef(false); // Si ya se hizo la carga inicial
 
-    try {
-      const roomData = await getRoomByCode(roomCode);
+  // Cargar datos de la sala
+  const loadRoomData = useCallback(
+    async (shouldIncrement = false) => {
+      if (!roomCode) return;
 
-      if (!roomData) {
-        Alert.alert(
-          "Sala no encontrada",
-          "El código de sala no existe o fue eliminado.",
-          [{ text: "OK", onPress: () => router.back() }],
-        );
-        return;
+      try {
+        const roomData = await getRoomByCode(roomCode);
+
+        if (!roomData) {
+          Alert.alert(
+            "Sala no encontrada",
+            "El código de sala no existe o fue eliminado.",
+            [{ text: "OK", onPress: () => router.back() }],
+          );
+          return;
+        }
+
+        setRoom(roomData);
+
+        // Incrementar contador de participantes solo si:
+        // 1. Se pide incrementar (shouldIncrement = true)
+        // 2. No es el creador de la sala (isCreator = false)
+        // 3. No se ha incrementado antes (hasIncrementedRef.current = false)
+        if (shouldIncrement && !isCreator && !hasIncrementedRef.current) {
+          await incrementParticipantCount(roomCode);
+          hasIncrementedRef.current = true;
+        }
+
+        // Cargar películas
+        const moviesData = await getMoviesInRoom(roomCode);
+        setMovies(moviesData);
+
+        // Marcar que ya se hizo la carga inicial
+        hasLoadedRef.current = true;
+      } catch (error) {
+        console.error("Error loading room:", error);
+        Alert.alert("Error", "No se pudo cargar la sala");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-
-      setRoom(roomData);
-
-      // Incrementar contador de participantes solo la primera vez
-      if (incrementCount && !hasJoined) {
-        await incrementParticipantCount(roomCode);
-        setHasJoined(true);
-      }
-
-      // Cargar películas
-      const moviesData = await getMoviesInRoom(roomCode);
-      setMovies(moviesData);
-    } catch (error) {
-      console.error("Error loading room:", error);
-      Alert.alert("Error", "No se pudo cargar la sala");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [roomCode, hasJoined, router]);
+    },
+    [roomCode, isCreator, router],
+  );
 
   // Cargar datos al montar (primera vez, incrementar contador)
   useEffect(() => {
     loadRoomData(true);
-  }, [roomCode]);
+  }, [loadRoomData]);
 
   // Recargar datos cada vez que la pantalla gana foco (sin incrementar contador)
   useFocusEffect(
     useCallback(() => {
-      if (hasJoined) {
+      // Solo recargar si ya se hizo la carga inicial
+      if (hasLoadedRef.current) {
         loadRoomData(false);
       }
-    }, [loadRoomData, hasJoined])
+    }, [loadRoomData]),
   );
 
   const handleRefresh = () => {
@@ -112,9 +134,37 @@ export default function RoomScreen() {
     console.log(`Vote ${voteType} for movie ${movieId}`);
   };
 
+  const handleDeleteMovie = (movieId: number, movieTitle: string) => {
+    Alert.alert(
+      "Eliminar película",
+      `¿Seguro que quieres eliminar "${movieTitle}" de la sala?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await removeMovieFromRoom(roomCode!, movieId);
+              // Actualizar lista de películas
+              setMovies((prev) => prev.filter((m) => m.id !== movieId));
+              // Resetear índice si es necesario
+              if (currentMovieIndex >= movies.length - 1) {
+                setCurrentMovieIndex(Math.max(0, movies.length - 2));
+              }
+            } catch (error) {
+              console.error("Error deleting movie:", error);
+              Alert.alert("Error", "No se pudo eliminar la película");
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const handleScroll = (event: any) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    const cardWidth = Dimensions.get('window').width * 0.75 + 16;
+    const cardWidth = Dimensions.get("window").width * 0.75 + 16;
     const index = Math.round(scrollPosition / cardWidth);
     setCurrentMovieIndex(index);
   };
@@ -236,18 +286,28 @@ export default function RoomScreen() {
               data={movies}
               horizontal
               showsHorizontalScrollIndicator={false}
-              snapToInterval={Dimensions.get('window').width * 0.75 + 16}
+              snapToInterval={Dimensions.get("window").width * 0.75 + 16}
               decelerationRate="fast"
               contentContainerStyle={{ paddingHorizontal: 24 }}
               onScroll={handleScroll}
               scrollEventThrottle={16}
               renderItem={({ item: movie }) => (
-                <View style={{ width: Dimensions.get('window').width * 0.75, marginRight: 16 }}>
+                <View
+                  style={{
+                    width: Dimensions.get("window").width * 0.75,
+                    marginRight: 16,
+                  }}
+                >
                   <MovieVoteCard
                     movie={movie}
                     userVote={null} // TODO: Implementar en FASE 6
                     onUpvote={() => handleVote(movie.id, "upvote")}
                     onDownvote={() => handleVote(movie.id, "downvote")}
+                    onDelete={
+                      room.status === "voting"
+                        ? () => handleDeleteMovie(movie.id, movie.title)
+                        : undefined
+                    }
                     onPress={() => {
                       // TODO: Abrir modal de detalles en FASE 7
                       console.log("Show details for", movie.id);
@@ -257,7 +317,7 @@ export default function RoomScreen() {
               )}
               keyExtractor={(item) => item.id.toString()}
             />
-            
+
             {/* Indicador de posición */}
             {movies.length > 1 && (
               <View className="flex-row justify-center gap-2 mt-4">
@@ -265,7 +325,9 @@ export default function RoomScreen() {
                   <View
                     key={index}
                     className={`h-2 rounded-full transition-all ${
-                      index === currentMovieIndex ? 'w-6 bg-green-500' : 'w-2 bg-gray-600'
+                      index === currentMovieIndex
+                        ? "w-6 bg-green-500"
+                        : "w-2 bg-gray-600"
                     }`}
                   />
                 ))}
