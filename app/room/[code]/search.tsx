@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 
+import { useUser } from "@/hooks/useUser";
 import {
   addMovieToRoom,
   getMoviesInRoom,
@@ -29,6 +30,9 @@ export default function SearchMovieScreen() {
   const params = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const roomCode = params.code?.toUpperCase();
+
+  // Hook para obtener el ID del usuario
+  const { userId } = useUser();
 
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState<TMDBMovie[]>([]);
@@ -100,14 +104,13 @@ export default function SearchMovieScreen() {
 
   // Agregar película a la sala
   const handleAddMovie = async () => {
-    if (!roomCode || !selectedMovie) return;
+    if (!roomCode || !selectedMovie || !userId) {
+      Alert.alert("Error", "No se pudo agregar la película. Intenta de nuevo.");
+      return;
+    }
 
     try {
       setModalLoading(true);
-
-      // TODO FASE 6: Implementar hook useUser para obtener userId persistente
-      // Por ahora generamos un ID temporal basado en timestamp
-      const tempUserId = `user_${Date.now()}`;
 
       await addMovieToRoom(
         roomCode,
@@ -118,7 +121,7 @@ export default function SearchMovieScreen() {
           releaseDate: selectedMovie.release_date,
           overview: selectedMovie.overview,
         },
-        tempUserId,
+        userId,
       );
 
       // Actualizar la lista de películas existentes

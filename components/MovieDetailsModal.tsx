@@ -51,7 +51,7 @@ export function MovieDetailsModal({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/90">
+      <View className="flex-1 bg-black">
         <TouchableOpacity
           className="absolute top-12 right-6 z-10 w-10 h-10 items-center justify-center bg-gray-800 rounded-full"
           onPress={onClose}
@@ -59,7 +59,7 @@ export function MovieDetailsModal({
           <X size={24} color="white" strokeWidth={2} />
         </TouchableOpacity>
 
-        <ScrollView 
+        <ScrollView
           className="flex-1 pt-12"
           contentContainerStyle={{ paddingBottom: 48 }}
           showsVerticalScrollIndicator={false}

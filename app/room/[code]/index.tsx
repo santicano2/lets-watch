@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 
+import { useUser } from "@/hooks/useUser";
 import {
   getMoviesInRoom,
   removeMovieFromRoom,
@@ -26,7 +27,8 @@ import {
   getRoomByCode,
   incrementParticipantCount,
 } from "@/services/firebase/rooms";
-import type { Room, RoomMovie } from "@/types/domain";
+import { castVote, getUserVotesInRoom } from "@/services/firebase/votes";
+import type { Room, RoomMovie, VoteType } from "@/types/domain";
 
 import { MovieVoteCard } from "@/components";
 import { Button } from "@/components/ui";
@@ -41,8 +43,12 @@ export default function RoomScreen() {
   const roomCode = params.code?.toUpperCase();
   const isCreator = params.isCreator === "true";
 
+  // Hook para obtener el ID del usuario
+  const { userId, loading: userLoading } = useUser();
+
   const [room, setRoom] = useState<Room | null>(null);
   const [movies, setMovies] = useState<RoomMovie[]>([]);
+  const [userVotes, setUserVotes] = useState<Map<number, VoteType>>(new Map());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
@@ -50,6 +56,23 @@ export default function RoomScreen() {
   // Refs para trackear estado
   const hasIncrementedRef = useRef(false); // Si ya se incrementó el contador
   const hasLoadedRef = useRef(false); // Si ya se hizo la carga inicial
+
+  // Cargar votos del usuario
+  const loadUserVotes = useCallback(async () => {
+    if (!roomCode || !userId) return;
+
+    try {
+      const votes = await getUserVotesInRoom(roomCode, userId);
+      // Convertir array de votos a Map para acceso rápido
+      const votesMap = new Map<number, VoteType>();
+      votes.forEach((vote) => {
+        votesMap.set(vote.movieId, vote.voteType);
+      });
+      setUserVotes(votesMap);
+    } catch (error) {
+      console.error("Error loading user votes:", error);
+    }
+  }, [roomCode, userId]);
 
   // Cargar datos de la sala
   const loadRoomData = useCallback(
@@ -101,19 +124,28 @@ export default function RoomScreen() {
     loadRoomData(true);
   }, [loadRoomData]);
 
+  // Cargar votos del usuario cuando el userId esté disponible
+  useEffect(() => {
+    if (userId && roomCode) {
+      loadUserVotes();
+    }
+  }, [userId, roomCode, loadUserVotes]);
+
   // Recargar datos cada vez que la pantalla gana foco (sin incrementar contador)
   useFocusEffect(
     useCallback(() => {
       // Solo recargar si ya se hizo la carga inicial
       if (hasLoadedRef.current) {
         loadRoomData(false);
+        loadUserVotes();
       }
-    }, [loadRoomData]),
+    }, [loadRoomData, loadUserVotes]),
   );
 
   const handleRefresh = () => {
     setRefreshing(true);
     loadRoomData(false);
+    loadUserVotes();
   };
 
   const handleShare = async () => {
@@ -129,9 +161,39 @@ export default function RoomScreen() {
     }
   };
 
-  const handleVote = (movieId: number, voteType: "upvote" | "downvote") => {
-    // TODO: Implementar lógica de votación en FASE 6
-    console.log(`Vote ${voteType} for movie ${movieId}`);
+  const handleVote = async (movieId: number, voteType: VoteType) => {
+    if (!roomCode || !userId) {
+      Alert.alert("Error", "No se pudo registrar el voto. Intenta de nuevo.");
+      return;
+    }
+
+    try {
+      // Registrar el voto
+      await castVote(roomCode, movieId, userId, voteType);
+
+      // Actualizar el estado local de votos del usuario
+      setUserVotes((prev) => {
+        const newVotes = new Map(prev);
+        const currentVote = prev.get(movieId);
+
+        if (currentVote === voteType) {
+          // Toggle off - eliminar el voto
+          newVotes.delete(movieId);
+        } else {
+          // Nuevo voto o switch
+          newVotes.set(movieId, voteType);
+        }
+
+        return newVotes;
+      });
+
+      // Recargar películas para obtener los nuevos scores
+      const moviesData = await getMoviesInRoom(roomCode);
+      setMovies(moviesData);
+    } catch (error) {
+      console.error("Error voting:", error);
+      Alert.alert("Error", "No se pudo registrar el voto");
+    }
   };
 
   const handleDeleteMovie = (movieId: number, movieTitle: string) => {
@@ -300,7 +362,7 @@ export default function RoomScreen() {
                 >
                   <MovieVoteCard
                     movie={movie}
-                    userVote={null} // TODO: Implementar en FASE 6
+                    userVote={userVotes.get(movie.id) || null}
                     onUpvote={() => handleVote(movie.id, "upvote")}
                     onDownvote={() => handleVote(movie.id, "downvote")}
                     onDelete={
