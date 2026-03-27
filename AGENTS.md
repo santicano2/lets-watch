@@ -84,8 +84,11 @@ Ver `README.md` para el plan completo. Progreso actual:
 - ✅ **FASE 2**: Cliente TMDB (completo con 8+ funciones)
 - ✅ **FASE 3**: UI Componentes básicos (Button, Card, Input, MovieCard, etc.)
 - ✅ **FASE 4**: Pantallas principales (Welcome, Create, Join, Room)
-- ⏳ **FASE 5**: Búsqueda y selección de películas
-- ⏳ **FASE 6-13**: Votación, detalles, features avanzadas
+- ✅ **FASE 5**: Búsqueda y selección de películas
+- ✅ **FASE 6**: Sistema de votación en tiempo real
+- ✅ **FASE 7**: Detalles de película (cast, providers, país automático)
+- ⏳ **FASE 8**: Deep linking robusto
+- ⏳ **FASE 9-13**: Dark mode, notificaciones, mejoras UI, testing, deploy
 
 ---
 
@@ -99,8 +102,10 @@ Ver `README.md` para el plan completo. Progreso actual:
 ### Características Importantes
 - **Dark mode**: Incluido en el plan (FASE 9)
 - **Push notifications**: Incluido en el plan (FASE 10)
-- **Detección de streaming**: Usar ubicación del teléfono, si no disponible, preguntar al usuario
-- **Hook useUser**: Pospuesto hasta FASE 6 (NO crearlo antes)
+- **Detección de streaming**: Detecta país automático con expo-localization, si no puede, pregunta al usuario
+- **Hooks implementados**:
+  - `useUser` - ID anónimo persistente en AsyncStorage
+  - `useCountry` - Detección/selección de país para providers de streaming
 
 ### Convenciones de Código
 - **TypeScript**: Strict mode
@@ -174,10 +179,15 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 4 completada
-**Último commit**: "feat: FASE 3 completada - Implementación de componentes UI y lógica de búsqueda"
-**Cambios pendientes de commit**: Corrección de types/domain.ts + FASE 4 pantallas
-**Próxima tarea**: Usuario revisará antes de commit, luego FASE 5
+**Última actualización**: FASE 7 completada
+**Último commit pendiente**: FASES 5-7 (búsqueda, votación, detalles)
+**Próxima tarea**: FASE 8 - Deep linking robusto
+
+### Archivos Nuevos/Modificados en esta Sesión
+- `hooks/useCountry.ts` - Hook para detección/selección de país
+- `components/CountryPickerModal.tsx` - Modal selector de país
+- `components/MovieDetailsModal.tsx` - Actualizado con cast y useCountry
+- `app/room/[code]/index.tsx` - Integrado modal de detalles al tocar película
 
 ---
 

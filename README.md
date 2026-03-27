@@ -206,32 +206,30 @@ votes/{voteId}
   - [x] Estado vacío cuando no hay películas
   - [x] Pull-to-refresh
 
-### 🔍 FASE 5: Búsqueda y Selección de Películas
-- [ ] `app/room/[code]/search.tsx` - Pantalla de búsqueda
-- [ ] Hook `useMovieSearch.ts` con debounce
-- [ ] Agregar película a Firestore
-- [ ] Validar duplicados antes de agregar
-- [ ] Loading states y estados vacíos
+### 🔍 FASE 5: Búsqueda y Selección de Películas (COMPLETADA)
+- [x] `app/room/[code]/search.tsx` - Pantalla de búsqueda
+- [x] Hook `useMovieSearch.ts` con debounce
+- [x] Agregar película a Firestore
+- [x] Validar duplicados antes de agregar
+- [x] Loading states y estados vacíos
 
-### 🗳️ FASE 6: Sistema de Votación
-- [ ] Hook `useUser.ts` - Generar y persistir userId anónimo
-- [ ] Hook `useRoom.ts` - Escuchar cambios de sala en tiempo real
-- [ ] Hook `useMovies.ts` - Escuchar películas de sala ordenadas
-- [ ] Hook `useVotes.ts` - Gestionar votos del usuario
-- [ ] Implementar lógica `toggleVote()`:
-  - [ ] Mismo voto → eliminar
-  - [ ] Voto opuesto → cambiar
-  - [ ] Sin voto → crear nuevo
-- [ ] Actualizar contadores en tiempo real
-- [ ] Calcular y mostrar película ganadora
+### 🗳️ FASE 6: Sistema de Votación (COMPLETADA)
+- [x] Hook `useUser.ts` - Generar y persistir userId anónimo
+- [x] Servicio `votes.ts` - castVote con toggle/switch behavior
+- [x] Integrar votación en pantalla de sala
+- [x] Actualizar contadores en tiempo real
+- [x] Visual feedback de voto actual del usuario
 
-### 🎭 FASE 7: Detalles de Película
-- [ ] `app/movie/[id].tsx` - Modal con detalles completos
-- [ ] Mostrar backdrop, poster, título, año, duración
-- [ ] Sinopsis completa
-- [ ] Lista de actores con fotos (horizontal scroll)
-- [ ] Plataformas de streaming disponibles por país
-- [ ] Puntuación de TMDB
+### 🎭 FASE 7: Detalles de Película (COMPLETADA)
+- [x] `MovieDetailsModal.tsx` - Modal con detalles completos
+- [x] Mostrar poster, título, año, duración, tagline
+- [x] Sinopsis completa
+- [x] Lista de actores con fotos (horizontal scroll)
+- [x] Plataformas de streaming por país del usuario
+- [x] Hook `useCountry.ts` - Detección automática de país
+- [x] `CountryPickerModal.tsx` - Selector manual si no se detecta
+- [x] Ver detalles desde sala de votación al tocar película
+- [x] Puntuación de TMDB
 
 ### 🔗 FASE 8: Deep Linking Robusto
 - [ ] Manejar deep links entrantes en `_layout.tsx`
@@ -318,4 +316,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 22, 2026 - FASE 4 completada ✅
+**Última actualización**: Marzo 27, 2026 - FASE 7 completada
