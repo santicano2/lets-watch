@@ -1,3 +1,5 @@
+import * as Localization from 'expo-localization';
+
 /**
  * Configuración del cliente TMDB
  */
@@ -41,4 +43,30 @@ export function getBackdropUrl(backdropPath: string | null): string | null {
  */
 export function getProfileUrl(profilePath: string | null): string | null {
   return getTMDBImageUrl(profilePath, 'w185');
+}
+
+/**
+ * Obtiene el código de país del dispositivo del usuario
+ * Usa expo-localization para detectar automáticamente
+ * @returns Código ISO 3166-1 (ej: "MX", "US", "ES", "AR")
+ */
+export function getUserCountryCode(): string {
+  // Obtener el locale del dispositivo (ej: "es-MX", "en-US")
+  const locale = Localization.getLocales()[0];
+  
+  // El código de región está en locale.regionCode
+  if (locale?.regionCode) {
+    return locale.regionCode.toUpperCase();
+  }
+  
+  // Fallback: intentar extraer del languageTag (ej: "es-MX" -> "MX")
+  if (locale?.languageTag) {
+    const parts = locale.languageTag.split('-');
+    if (parts.length > 1) {
+      return parts[parts.length - 1].toUpperCase();
+    }
+  }
+  
+  // Default fallback
+  return 'US';
 }

@@ -29,8 +29,9 @@ import {
 } from "@/services/firebase/rooms";
 import { castVote, getUserVotesInRoom } from "@/services/firebase/votes";
 import type { Room, RoomMovie, VoteType } from "@/types/domain";
+import type { TMDBMovie } from "@/types/tmdb";
 
-import { MovieVoteCard } from "@/components";
+import { MovieDetailsModal, MovieVoteCard } from "@/components";
 import { Button } from "@/components/ui";
 
 /**
@@ -52,6 +53,10 @@ export default function RoomScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
+
+  // Estado para el modal de detalles
+  const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
+  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
 
   // Refs para trackear estado
   const hasIncrementedRef = useRef(false); // Si ya se incrementó el contador
@@ -231,6 +236,32 @@ export default function RoomScreen() {
     setCurrentMovieIndex(index);
   };
 
+  // Función para abrir el modal de detalles
+  const handleShowDetails = (movie: RoomMovie) => {
+    // Convertir RoomMovie a TMDBMovie (formato que espera el modal)
+    const tmdbMovie: TMDBMovie = {
+      id: movie.id,
+      title: movie.title,
+      original_title: movie.title,
+      overview: movie.overview,
+      poster_path: movie.posterPath,
+      backdrop_path: null,
+      release_date: movie.releaseDate,
+      vote_average: 0,
+      vote_count: 0,
+      popularity: 0,
+      adult: false,
+      genre_ids: [],
+    };
+    setSelectedMovie(tmdbMovie);
+    setDetailsModalVisible(true);
+  };
+
+  const handleCloseDetails = () => {
+    setDetailsModalVisible(false);
+    setSelectedMovie(null);
+  };
+
   if (loading) {
     return (
       <View className="flex-1 bg-black items-center justify-center">
@@ -370,10 +401,7 @@ export default function RoomScreen() {
                         ? () => handleDeleteMovie(movie.id, movie.title)
                         : undefined
                     }
-                    onPress={() => {
-                      // TODO: Abrir modal de detalles en FASE 7
-                      console.log("Show details for", movie.id);
-                    }}
+                    onPress={() => handleShowDetails(movie)}
                   />
                 </View>
               )}
@@ -410,6 +438,14 @@ export default function RoomScreen() {
           </TouchableOpacity>
         </Link>
       )}
+
+      {/* Modal de detalles de película */}
+      <MovieDetailsModal
+        movie={selectedMovie}
+        visible={detailsModalVisible}
+        onClose={handleCloseDetails}
+        isAdded={true}
+      />
     </View>
   );
 }
