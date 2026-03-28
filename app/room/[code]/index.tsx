@@ -1,7 +1,6 @@
 import * as Clipboard from "expo-clipboard";
 import {
   Link,
-  useFocusEffect,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
@@ -14,7 +13,7 @@ import {
   Share2,
   Trophy,
 } from "lucide-react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -31,14 +30,14 @@ import {
 
 import { useUser } from "@/hooks/useUser";
 import {
-  getMoviesInRoom,
   removeMovieFromRoom,
+  subscribeToMovies,
 } from "@/services/firebase/movies";
 import {
   getRoomByCode,
   incrementParticipantCount,
 } from "@/services/firebase/rooms";
-import { castVote, getUserVotesInRoom } from "@/services/firebase/votes";
+import { castVote, subscribeToUserVotes } from "@/services/firebase/votes";
 import type { Room, RoomMovie, VoteType } from "@/types/domain";
 import type { TMDBMovie } from "@/types/tmdb";
 
@@ -47,7 +46,7 @@ import { Button } from "@/components/ui";
 
 /**
  * Pantalla principal de la sala de votación
- * Muestra las películas agregadas y permite votar
+ * Muestra las películas agregadas y permite votar en tiempo real
  */
 export default function RoomScreen() {
   const params = useLocalSearchParams<{ code: string; isCreator?: string }>();
@@ -70,31 +69,13 @@ export default function RoomScreen() {
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
 
   // Refs para trackear estado
-  const hasIncrementedRef = useRef(false); // Si ya se incrementó el contador
-  const hasLoadedRef = useRef(false); // Si ya se hizo la carga inicial
+  const hasIncrementedRef = useRef(false);
 
-  // Cargar votos del usuario
-  const loadUserVotes = useCallback(async () => {
-    if (!roomCode || !userId) return;
+  // Cargar datos iniciales de la sala (una sola vez)
+  useEffect(() => {
+    if (!roomCode) return;
 
-    try {
-      const votes = await getUserVotesInRoom(roomCode, userId);
-      // Convertir array de votos a Map para acceso rápido
-      const votesMap = new Map<number, VoteType>();
-      votes.forEach((vote) => {
-        votesMap.set(vote.movieId, vote.voteType);
-      });
-      setUserVotes(votesMap);
-    } catch (error) {
-      console.error("Error loading user votes:", error);
-    }
-  }, [roomCode, userId]);
-
-  // Cargar datos de la sala
-  const loadRoomData = useCallback(
-    async (shouldIncrement = false) => {
-      if (!roomCode) return;
-
+    const loadRoom = async () => {
       try {
         const roomData = await getRoomByCode(roomCode);
 
@@ -109,59 +90,65 @@ export default function RoomScreen() {
 
         setRoom(roomData);
 
-        // Incrementar contador de participantes solo si:
-        // 1. Se pide incrementar (shouldIncrement = true)
-        // 2. No es el creador de la sala (isCreator = false)
-        // 3. No se ha incrementado antes (hasIncrementedRef.current = false)
-        if (shouldIncrement && !isCreator && !hasIncrementedRef.current) {
+        // Incrementar contador solo si no es creador y no se ha incrementado
+        if (!isCreator && !hasIncrementedRef.current) {
           await incrementParticipantCount(roomCode);
           hasIncrementedRef.current = true;
         }
-
-        // Cargar películas
-        const moviesData = await getMoviesInRoom(roomCode);
-        setMovies(moviesData);
-
-        // Marcar que ya se hizo la carga inicial
-        hasLoadedRef.current = true;
       } catch (error) {
         console.error("Error loading room:", error);
         Alert.alert("Error", "No se pudo cargar la sala");
       } finally {
         setLoading(false);
+      }
+    };
+
+    loadRoom();
+  }, [roomCode, isCreator, router]);
+
+  // Suscripción en tiempo real a las películas
+  useEffect(() => {
+    if (!roomCode) return;
+
+    const unsubscribe = subscribeToMovies(
+      roomCode,
+      (updatedMovies) => {
+        setMovies(updatedMovies);
         setRefreshing(false);
+      },
+      (error) => {
+        console.error("Error in movies subscription:", error);
       }
-    },
-    [roomCode, isCreator, router],
-  );
+    );
 
-  // Cargar datos al montar (primera vez, incrementar contador)
+    return () => unsubscribe();
+  }, [roomCode]);
+
+  // Suscripción en tiempo real a los votos del usuario
   useEffect(() => {
-    loadRoomData(true);
-  }, [loadRoomData]);
+    if (!roomCode || !userId) return;
 
-  // Cargar votos del usuario cuando el userId esté disponible
-  useEffect(() => {
-    if (userId && roomCode) {
-      loadUserVotes();
-    }
-  }, [userId, roomCode, loadUserVotes]);
-
-  // Recargar datos cada vez que la pantalla gana foco (sin incrementar contador)
-  useFocusEffect(
-    useCallback(() => {
-      // Solo recargar si ya se hizo la carga inicial
-      if (hasLoadedRef.current) {
-        loadRoomData(false);
-        loadUserVotes();
+    const unsubscribe = subscribeToUserVotes(
+      roomCode,
+      userId,
+      (votesMap) => {
+        setUserVotes(votesMap);
+      },
+      (error) => {
+        console.error("Error in votes subscription:", error);
       }
-    }, [loadRoomData, loadUserVotes]),
-  );
+    );
 
+    return () => unsubscribe();
+  }, [roomCode, userId]);
+
+  // Refresh manual - solo actualiza el estado de refreshing
+  // Las suscripciones en tiempo real se encargan de los datos
   const handleRefresh = () => {
     setRefreshing(true);
-    loadRoomData(false);
-    loadUserVotes();
+    // El refreshing se pondrá en false cuando lleguen los datos de la suscripción
+    // Timeout de seguridad por si no hay cambios
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
   // Copiar código al portapapeles
@@ -186,14 +173,16 @@ export default function RoomScreen() {
   const handleShare = async () => {
     if (!roomCode || !room) return;
 
-    const deepLink = `letswatch://room/${roomCode}`;
     const message = [
-      `${room.creatorName} te invita a votar peliculas en Let's Watch`,
+      `${room.creatorName} te invita a votar peliculas en Let's Watch!`,
       ``,
-      `Codigo de sala: ${roomCode}`,
+      `Codigo de sala:`,
       ``,
-      `Abre este link en tu celular:`,
-      deepLink,
+      `   ${roomCode}`,
+      ``,
+      `1. Descarga Let's Watch`,
+      `2. Toca "Unirse a Sala"`,
+      `3. Ingresa el codigo ${roomCode}`,
     ].join("\n");
 
     try {
@@ -213,28 +202,8 @@ export default function RoomScreen() {
     }
 
     try {
-      // Registrar el voto
+      // Registrar el voto - las suscripciones en tiempo real actualizarán la UI
       await castVote(roomCode, movieId, userId, voteType);
-
-      // Actualizar el estado local de votos del usuario
-      setUserVotes((prev) => {
-        const newVotes = new Map(prev);
-        const currentVote = prev.get(movieId);
-
-        if (currentVote === voteType) {
-          // Toggle off - eliminar el voto
-          newVotes.delete(movieId);
-        } else {
-          // Nuevo voto o switch
-          newVotes.set(movieId, voteType);
-        }
-
-        return newVotes;
-      });
-
-      // Recargar películas para obtener los nuevos scores
-      const moviesData = await getMoviesInRoom(roomCode);
-      setMovies(moviesData);
     } catch (error) {
       console.error("Error voting:", error);
       Alert.alert("Error", "No se pudo registrar el voto");
@@ -252,9 +221,8 @@ export default function RoomScreen() {
           style: "destructive",
           onPress: async () => {
             try {
+              // La suscripción en tiempo real actualizará la lista automáticamente
               await removeMovieFromRoom(roomCode!, movieId);
-              // Actualizar lista de películas
-              setMovies((prev) => prev.filter((m) => m.id !== movieId));
               // Resetear índice si es necesario
               if (currentMovieIndex >= movies.length - 1) {
                 setCurrentMovieIndex(Math.max(0, movies.length - 2));

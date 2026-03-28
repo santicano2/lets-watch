@@ -7,6 +7,8 @@ import {
   getDocs,
   query,
   orderBy,
+  onSnapshot,
+  type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './config';
 import { RoomMovie } from '@/types/domain';
@@ -153,5 +155,44 @@ export async function updateMovieVotes(
       score,
     },
     { merge: true }
+  );
+}
+
+/**
+ * Suscripción en tiempo real a las películas de una sala
+ * Retorna una función para cancelar la suscripción
+ */
+export function subscribeToMovies(
+  roomCode: string,
+  onMoviesChange: (movies: RoomMovie[]) => void,
+  onError?: (error: Error) => void
+): Unsubscribe {
+  const moviesCol = getMoviesCollection(roomCode);
+  const q = query(moviesCol, orderBy('score', 'desc'));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const movies = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: data.id,
+          title: data.title,
+          posterPath: data.posterPath,
+          releaseDate: data.releaseDate,
+          overview: data.overview,
+          addedBy: data.addedBy,
+          addedAt: new Date(data.addedAt),
+          upvotes: data.upvotes,
+          downvotes: data.downvotes,
+          score: data.score,
+        } as RoomMovie;
+      });
+      onMoviesChange(movies);
+    },
+    (error) => {
+      console.error('Error in movies subscription:', error);
+      onError?.(error);
+    }
   );
 }

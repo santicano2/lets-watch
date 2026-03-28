@@ -14,12 +14,15 @@ import { Button, Input } from "@/components/ui";
 export default function JoinRoomScreen() {
   const router = useRouter();
   const [roomCode, setRoomCode] = useState("");
+  const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [nameError, setNameError] = useState("");
 
   const handleJoinRoom = async () => {
-    // Validación
+    // Validación del código
     const code = roomCode.trim().toUpperCase();
+    const name = userName.trim();
 
     if (!code) {
       setError("Por favor ingresa un código");
@@ -31,8 +34,19 @@ export default function JoinRoomScreen() {
       return;
     }
 
+    if (!name) {
+      setNameError("Por favor ingresa tu nombre");
+      return;
+    }
+
+    if (name.length < 2) {
+      setNameError("El nombre debe tener al menos 2 caracteres");
+      return;
+    }
+
     setLoading(true);
     setError("");
+    setNameError("");
 
     try {
       const room = await getRoomByCode(code);
@@ -51,8 +65,8 @@ export default function JoinRoomScreen() {
         return;
       }
 
-      // Navegar a la sala
-      router.push(`/room/${code}` as any);
+      // Navegar a la sala con el nombre del usuario
+      router.push(`/room/${code}?userName=${encodeURIComponent(name)}` as any);
     } catch (err) {
       console.error("Error joining room:", err);
       Alert.alert(
@@ -83,7 +97,21 @@ export default function JoinRoomScreen() {
         </View>
 
         {/* Form */}
-        <View className="gap-6">
+        <View className="gap-4">
+          <Input
+            label="Tu nombre"
+            placeholder="¿Cómo te llamas?"
+            value={userName}
+            onChangeText={(text) => {
+              setUserName(text);
+              if (nameError) setNameError("");
+            }}
+            error={nameError}
+            maxLength={30}
+            autoCorrect={false}
+            autoFocus
+          />
+
           <Input
             label="Código de sala"
             placeholder="ABC123"
@@ -97,13 +125,12 @@ export default function JoinRoomScreen() {
             maxLength={6}
             autoCapitalize="characters"
             autoCorrect={false}
-            autoFocus
           />
 
           <Button
             onPress={handleJoinRoom}
             loading={loading}
-            disabled={loading || roomCode.length !== 6}
+            disabled={loading || roomCode.length !== 6 || userName.trim().length < 2}
             size="lg"
           >
             Unirse a Sala

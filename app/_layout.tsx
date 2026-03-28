@@ -4,7 +4,8 @@ import "../reanimated.config";
 import * as Linking from "expo-linking";
 import * as NavigationBar from "expo-navigation-bar";
 import { Stack, useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
+import { setStatusBarHidden } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, LogBox, Platform, Text, View } from "react-native";
 
@@ -18,11 +19,20 @@ export default function RootLayout() {
   const router = useRouter();
   const [isProcessingLink, setIsProcessingLink] = useState(false);
 
-  // Ocultar barra de navegación en Android
+  // Configurar UI del sistema (status bar, navigation bar)
   useEffect(() => {
+    // Ocultar status bar
+    setStatusBarHidden(true, "none");
+
+    // Configurar Android
     if (Platform.OS === "android") {
+      // Ocultar barra de navegación
       NavigationBar.setVisibilityAsync("hidden");
       NavigationBar.setBehaviorAsync("overlay-swipe");
+      NavigationBar.setBackgroundColorAsync("#000000");
+      
+      // Configurar color de fondo del sistema
+      SystemUI.setBackgroundColorAsync("#000000");
     }
   }, []);
 
@@ -76,15 +86,12 @@ export default function RootLayout() {
   }
 
   return (
-    <>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="create" />
-        <Stack.Screen name="join" />
-        <Stack.Screen name="room/[code]/index" />
-        <Stack.Screen name="room/[code]/search" />
-      </Stack>
-      <StatusBar hidden />
-    </>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="create" />
+      <Stack.Screen name="join" />
+      <Stack.Screen name="room/[code]/index" />
+      <Stack.Screen name="room/[code]/search" />
+    </Stack>
   );
 }

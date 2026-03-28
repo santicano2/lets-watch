@@ -8,6 +8,8 @@ import {
   where,
   getDocs,
   writeBatch,
+  onSnapshot,
+  type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './config';
 import { Vote, VoteType } from '@/types/domain';
@@ -163,4 +165,38 @@ export async function deleteAllVotesInRoom(roomCode: string): Promise<void> {
   });
 
   await batch.commit();
+}
+
+/**
+ * Suscripción en tiempo real a los votos de un usuario en una sala
+ * Retorna una función para cancelar la suscripción
+ */
+export function subscribeToUserVotes(
+  roomCode: string,
+  userId: string,
+  onVotesChange: (votes: Map<number, VoteType>) => void,
+  onError?: (error: Error) => void
+): Unsubscribe {
+  const votesCol = collection(db, VOTES_COLLECTION);
+  const q = query(
+    votesCol,
+    where('roomCode', '==', roomCode),
+    where('userId', '==', userId)
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const votesMap = new Map<number, VoteType>();
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        votesMap.set(data.movieId, data.voteType as VoteType);
+      });
+      onVotesChange(votesMap);
+    },
+    (error) => {
+      console.error('Error in votes subscription:', error);
+      onError?.(error);
+    }
+  );
 }
