@@ -1,19 +1,30 @@
+import * as Clipboard from "expo-clipboard";
 import {
   Link,
   useFocusEffect,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import { Film, Frown, Lock, Plus, Trophy } from "lucide-react-native";
+import {
+  Copy,
+  Film,
+  Frown,
+  Lock,
+  Plus,
+  Share2,
+  Trophy,
+} from "lucide-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
   FlatList,
+  Platform,
   RefreshControl,
   ScrollView,
   Share,
   Text,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -153,13 +164,42 @@ export default function RoomScreen() {
     loadUserVotes();
   };
 
-  const handleShare = async () => {
+  // Copiar código al portapapeles
+  const handleCopyCode = async () => {
     if (!roomCode) return;
 
     try {
+      await Clipboard.setStringAsync(roomCode);
+
+      // Mostrar feedback según plataforma
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Código copiado", ToastAndroid.SHORT);
+      } else {
+        Alert.alert("Copiado", `Código ${roomCode} copiado al portapapeles`);
+      }
+    } catch (error) {
+      console.error("Error copying:", error);
+    }
+  };
+
+  // Compartir sala con deep link
+  const handleShare = async () => {
+    if (!roomCode || !room) return;
+
+    const deepLink = `letswatch://room/${roomCode}`;
+    const message = [
+      `${room.creatorName} te invita a votar peliculas en Let's Watch`,
+      ``,
+      `Codigo de sala: ${roomCode}`,
+      ``,
+      `Abre este link en tu celular:`,
+      deepLink,
+    ].join("\n");
+
+    try {
       await Share.share({
-        message: `¡Únete a mi sala de Let's Watch!\n\nCódigo: ${roomCode}\nLink: letswatch://room/${roomCode}`,
-        title: "Invitación a Let's Watch",
+        message,
+        title: `Unete a la sala ${roomCode}`,
       });
     } catch (error) {
       console.error("Error sharing:", error);
@@ -300,9 +340,16 @@ export default function RoomScreen() {
       <View className="bg-gray-900 px-6 pt-12 pb-6 border-b border-gray-800">
         <View className="flex-row items-center justify-between mb-2">
           <View className="flex-1">
-            <Text className="text-2xl font-bold text-white mb-1">
-              Sala {roomCode}
-            </Text>
+            <TouchableOpacity
+              onPress={handleCopyCode}
+              className="flex-row items-center gap-2 mb-1"
+              activeOpacity={0.7}
+            >
+              <Text className="text-2xl font-bold text-white">
+                Sala {roomCode}
+              </Text>
+              <Copy size={18} color="#9ca3af" strokeWidth={2} />
+            </TouchableOpacity>
             <Text className="text-gray-400">
               por {room.creatorName} · {room.participantCount} participante
               {room.participantCount !== 1 ? "s" : ""}
@@ -310,9 +357,10 @@ export default function RoomScreen() {
           </View>
           <TouchableOpacity
             onPress={handleShare}
-            className="bg-blue-500 rounded-xl px-4 py-2"
+            className="bg-blue-500 rounded-xl p-3"
+            activeOpacity={0.7}
           >
-            <Text className="text-white font-semibold">Compartir</Text>
+            <Share2 size={22} color="white" strokeWidth={2} />
           </TouchableOpacity>
         </View>
 

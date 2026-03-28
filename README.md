@@ -231,20 +231,19 @@ votes/{voteId}
 - [x] Ver detalles desde sala de votación al tocar película
 - [x] Puntuación de TMDB
 
-### 🔗 FASE 8: Deep Linking Robusto
-- [ ] Manejar deep links entrantes en `_layout.tsx`
-- [ ] Navegación automática a sala desde link
-- [ ] Agregar userId a participants al unirse
-- [ ] Botón copiar código de sala
-- [ ] Mejorar Share con metadata
+### 🔗 FASE 8: Deep Linking Robusto (COMPLETADA)
+- [x] Scheme `letswatch://` configurado en app.json
+- [x] Manejar deep links entrantes en `_layout.tsx`
+- [x] Navegación automática a sala desde link (`letswatch://room/ABC123`)
+- [x] Loading state mientras se procesa el deep link
+- [x] Botón copiar código (tap en "Sala XXXXXX" para copiar)
+- [x] Toast/Alert de confirmación al copiar
+- [x] Compartir mejorado con mejor formato de mensaje
+- [x] Icono de compartir en header
 
-### 🌙 FASE 9: Modo Oscuro
-- [ ] `context/ThemeContext.tsx` - Context de tema
-- [ ] Función `toggleTheme()`
-- [ ] Persistir preferencia en AsyncStorage
-- [ ] Actualizar `tailwind.config.js` para dark mode
-- [ ] Agregar variantes dark a todos los componentes
-- [ ] Toggle de tema en header
+### ~~🌙 FASE 9: Modo Oscuro~~ (CANCELADA)
+- La app usa dark mode fijo por diseño (fondo negro, textos claros)
+- No se implementará toggle de tema
 
 ### 🔔 FASE 10: Notificaciones Push (Opcional)
 - [ ] Configurar Firebase Cloud Messaging
@@ -316,4 +315,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 27, 2026 - FASE 7 completada
+**Última actualización**: Marzo 27, 2026 - FASE 8 completada

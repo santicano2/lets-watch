@@ -7,9 +7,11 @@ Este archivo documenta el contexto esencial del proyecto para que cualquier agen
 ## Información Crítica del Proyecto
 
 ### Objetivo
+
 Aplicación móvil de votación grupal para decidir qué película ver. Los usuarios crean salas, comparten código/link, agregan películas desde TMDB y votan (upvote/downvote).
 
 ### Stack Tecnológico
+
 - **Frontend**: Expo SDK 54 + React Native + NativeWind v4 (Tailwind CSS v3.4.19)
 - **Backend**: Firebase (Firestore)
 - **API Externa**: TMDB (The Movie Database) - idioma: **es-MX**
@@ -20,6 +22,7 @@ Aplicación móvil de votación grupal para decidir qué película ver. Los usua
 ### Decisiones de Diseño Clave
 
 #### 1. Colores
+
 - Verde: `#22c55e` (green-500)
 - Azul: `#3b82f6` (blue-500)
 - Estilo fresco y moderno (NO tema cinema rojo/ámbar)
@@ -27,6 +30,7 @@ Aplicación móvil de votación grupal para decidir qué película ver. Los usua
 #### 2. Estructura de Datos Firebase
 
 **Colección: `rooms`**
+
 ```
 rooms/{roomCode}
   - code: string (6 caracteres, ej: "ABC123")
@@ -51,6 +55,7 @@ rooms/{roomCode}
 ```
 
 **Colección: `votes`** (top-level para queries eficientes)
+
 ```
 votes/{roomCode}_{movieId}_{userId}
   - roomCode: string
@@ -61,15 +66,18 @@ votes/{roomCode}_{movieId}_{userId}
 ```
 
 #### 3. Lógica de Votación
+
 - **Toggle behavior**: Si el usuario vota lo mismo dos veces, se elimina el voto
 - **Switch behavior**: Si el usuario cambia de upvote a downvote (o viceversa), se actualiza el voto
 - **Recalculation**: Después de cada voto, se recuentan todos los votos y se actualiza el score de la película
 
 #### 4. Deep Linking
+
 - **Scheme**: `letswatch://room/{code}`
 - **Fallback**: Entrada manual del código de 6 caracteres
 
 #### 5. Seguridad Firebase
+
 - **IMPORTANTE**: Firestore está en **modo de prueba** (reglas permisivas, expiración 30 días)
 - **Recordatorio**: El usuario pidió que se le recuerde implementar reglas de seguridad antes de producción
 
@@ -87,20 +95,27 @@ Ver `README.md` para el plan completo. Progreso actual:
 - ✅ **FASE 5**: Búsqueda y selección de películas
 - ✅ **FASE 6**: Sistema de votación en tiempo real
 - ✅ **FASE 7**: Detalles de película (cast, providers, país automático)
-- ⏳ **FASE 8**: Deep linking robusto
-- ⏳ **FASE 9-13**: Dark mode, notificaciones, mejoras UI, testing, deploy
+- ✅ **FASE 8**: Deep linking robusto (copiar código, compartir mejorado)
+- ~~FASE 9~~: Dark mode (CANCELADA - app es dark mode fijo por diseño)
+- ⏳ **FASE 10**: Notificaciones push (opcional)
+- ⏳ **FASE 11**: Mejoras UI/UX (animaciones, haptics)
+- ⏳ **FASE 12**: Testing y validaciones
+- ⏳ **FASE 13**: Build y deploy
 
 ---
 
 ## Preferencias del Usuario
 
 ### Metodología
+
 - **Trabajar fase por fase**: NO hacer todo de golpe, hacer pausas entre fases
 - **Pedir confirmación**: Preguntar antes de continuar con la siguiente fase
 - **Commits frecuentes**: Al completar cada fase
 
 ### Características Importantes
-- **Dark mode**: Incluido en el plan (FASE 9)
+
+- **Dark mode**: Fijo por diseño (NO toggle, siempre dark)
+- **Push notifications**: Incluido en el plan (FASE 10, opcional)
 - **Push notifications**: Incluido en el plan (FASE 10)
 - **Detección de streaming**: Detecta país automático con expo-localization, si no puede, pregunta al usuario
 - **Hooks implementados**:
@@ -108,6 +123,7 @@ Ver `README.md` para el plan completo. Progreso actual:
   - `useCountry` - Detección/selección de país para providers de streaming
 
 ### Convenciones de Código
+
 - **TypeScript**: Strict mode
 - **Imports**: Usar alias `@/` para rutas absolutas
 - **Comentarios**: En español, concisos y útiles
@@ -118,9 +134,11 @@ Ver `README.md` para el plan completo. Progreso actual:
 ## Archivos Sensibles
 
 ### NO Commitear
+
 - `.env.local` - Contiene credenciales de Firebase (ya en .gitignore)
 
 ### Credenciales Firebase (Ya Configuradas)
+
 - **Project ID**: `lets-watch-dd394`
 - **Database**: Firestore (mode: test)
 - Todas las keys están en `.env.local`
@@ -161,16 +179,19 @@ pnpm build:ios
 ## Notas Técnicas Importantes
 
 ### NativeWind v4 Quirks
+
 - Requiere Tailwind CSS v3.4.19 (NO v4.x)
 - Configuración en `metro.config.js` y `babel.config.js`
 - Importar `global.css` en `app/_layout.tsx`
 
 ### Firebase SDK
+
 - Usamos **Web SDK** (no @react-native-firebase)
 - Funciona perfectamente con Expo
 - Más simple y sin configuración nativa extra
 
 ### Expo Router
+
 - Navegación file-based (carpeta `app/`)
 - Template inicial incluye tabs navigation
 - Deep linking configurado en `app.json`
@@ -179,19 +200,22 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 7 completada
-**Último commit pendiente**: FASES 5-7 (búsqueda, votación, detalles)
-**Próxima tarea**: FASE 8 - Deep linking robusto
+**Última actualización**: FASE 8 completada
+**Último commit pendiente**: FASES 5-8 (búsqueda, votación, detalles, deep linking)
+**Próxima tarea**: FASE 9 - Dark mode
 
-### Archivos Nuevos/Modificados en esta Sesión
+### Archivos Nuevos/Modificados Recientemente
+
+- `app/_layout.tsx` - Manejo de deep links con expo-linking
+- `app/room/[code]/index.tsx` - Botón copiar código, Share mejorado
 - `hooks/useCountry.ts` - Hook para detección/selección de país
 - `components/CountryPickerModal.tsx` - Modal selector de país
-- `components/MovieDetailsModal.tsx` - Actualizado con cast y useCountry
-- `app/room/[code]/index.tsx` - Integrado modal de detalles al tocar película
+- `components/MovieDetailsModal.tsx` - Modal con cast y providers por país
 
 ---
 
 ## Contacto y Documentación
+
 - TMDB API: https://developer.themoviedb.org/docs
 - Firebase Docs: https://firebase.google.com/docs/firestore
 - Expo Docs: https://docs.expo.dev/
