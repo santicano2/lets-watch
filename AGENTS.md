@@ -52,6 +52,13 @@ rooms/{roomCode}
       - upvotes: number
       - downvotes: number
       - score: number (upvotes - downvotes)
+
+  /participants (subcolección)
+    /{userId}
+      - userId: string
+      - name: string
+      - joinedAt: timestamp
+      - isCreator: boolean
 ```
 
 **Colección: `votes`** (top-level para queries eficientes)
@@ -200,17 +207,19 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 8 completada
-**Último commit pendiente**: FASES 5-8 (búsqueda, votación, detalles, deep linking)
-**Próxima tarea**: FASE 9 - Dark mode
+**Última actualización**: Modal de participantes implementado
+**Último commit pendiente**: Modal de participantes (FASES 5-8 ya pendientes)
+**Próxima tarea**: FASE 10 - Notificaciones push (opcional)
 
 ### Archivos Nuevos/Modificados Recientemente
 
-- `app/_layout.tsx` - Manejo de deep links con expo-linking
-- `app/room/[code]/index.tsx` - Botón copiar código, Share mejorado
-- `hooks/useCountry.ts` - Hook para detección/selección de país
-- `components/CountryPickerModal.tsx` - Modal selector de país
-- `components/MovieDetailsModal.tsx` - Modal con cast y providers por país
+- `types/domain.ts` - Agregado tipo `Participant`, corregido typo `odId` -> `userId`
+- `services/firebase/participants.ts` - NUEVO: CRUD y suscripción tiempo real
+- `components/ParticipantsModal.tsx` - NUEVO: Modal para ver participantes
+- `components/index.ts` - Export de ParticipantsModal
+- `app/room/[code]/index.tsx` - Integración del modal de participantes
+- `app/create.tsx` - Registra al creador como participante
+- `app/join.tsx` - Registra al usuario como participante al unirse
 
 ---
 

@@ -3,6 +3,8 @@ import { Lightbulb, Link2 } from "lucide-react-native";
 import React, { useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
 
+import { useUser } from "@/hooks/useUser";
+import { addParticipant } from "@/services/firebase/participants";
 import { getRoomByCode } from "@/services/firebase/rooms";
 import { isValidRoomCode } from "@/utils/roomCode";
 
@@ -13,6 +15,7 @@ import { Button, Input } from "@/components/ui";
  */
 export default function JoinRoomScreen() {
   const router = useRouter();
+  const { userId } = useUser();
   const [roomCode, setRoomCode] = useState("");
   const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,6 +66,11 @@ export default function JoinRoomScreen() {
         ]);
         setLoading(false);
         return;
+      }
+
+      // Registrar al usuario como participante
+      if (userId) {
+        await addParticipant(code, userId, name, false);
       }
 
       // Navegar a la sala con el nombre del usuario

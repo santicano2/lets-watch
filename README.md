@@ -160,6 +160,9 @@ rooms/{roomCode}
     - tmdbId, title, posterPath, backdropPath, releaseDate
     - addedBy, addedAt, upvotes, downvotes, netVotes
 
+  participants/{userId}
+    - userId, name, joinedAt, isCreator
+
 votes/{voteId}
   - roomCode, movieId, userId, type ('up'|'down'), createdAt
 ```
@@ -240,6 +243,8 @@ votes/{voteId}
 - [x] Toast/Alert de confirmación al copiar
 - [x] Compartir mejorado con mejor formato de mensaje
 - [x] Icono de compartir en header
+- [x] Modal de participantes (ver quién está en la sala)
+- [x] Registro de participantes al crear/unirse a sala
 
 ### ~~🌙 FASE 9: Modo Oscuro~~ (CANCELADA)
 - La app usa dark mode fijo por diseño (fondo negro, textos claros)
@@ -315,4 +320,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 27, 2026 - FASE 8 completada
+**Última actualización**: Marzo 28, 2026 - Modal de participantes implementado

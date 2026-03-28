@@ -14,6 +14,13 @@ export interface Room {
   selectedMovieId?: number; // TMDB ID de la película ganadora
 }
 
+export interface Participant {
+  userId: string; // ID anónimo del usuario
+  name: string;
+  joinedAt: Date;
+  isCreator: boolean;
+}
+
 export interface RoomMovie {
   id: number; // TMDB ID (usado como document ID en subcollection)
   title: string;

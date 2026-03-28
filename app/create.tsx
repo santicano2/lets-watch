@@ -3,6 +3,8 @@ import { Clapperboard, Lightbulb } from "lucide-react-native";
 import React, { useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
 
+import { useUser } from "@/hooks/useUser";
+import { addParticipant } from "@/services/firebase/participants";
 import { createRoom } from "@/services/firebase/rooms";
 
 import { Button, Input } from "@/components/ui";
@@ -13,6 +15,7 @@ import { Button, Input } from "@/components/ui";
  */
 export default function CreateRoomScreen() {
   const router = useRouter();
+  const { userId } = useUser();
   const [creatorName, setCreatorName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,6 +32,11 @@ export default function CreateRoomScreen() {
 
     try {
       const room = await createRoom(creatorName.trim());
+
+      // Registrar al creador como participante
+      if (userId) {
+        await addParticipant(room.code, userId, creatorName.trim(), true);
+      }
 
       // Navegar a la sala creada (isCreator=true para no incrementar contador)
       router.push(`/room/${room.code}?isCreator=true` as any);

@@ -12,6 +12,7 @@ import {
   Plus,
   Share2,
   Trophy,
+  Users,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -33,15 +34,16 @@ import {
   removeMovieFromRoom,
   subscribeToMovies,
 } from "@/services/firebase/movies";
+import { subscribeToParticipants } from "@/services/firebase/participants";
 import {
   getRoomByCode,
   incrementParticipantCount,
 } from "@/services/firebase/rooms";
 import { castVote, subscribeToUserVotes } from "@/services/firebase/votes";
-import type { Room, RoomMovie, VoteType } from "@/types/domain";
+import type { Participant, Room, RoomMovie, VoteType } from "@/types/domain";
 import type { TMDBMovie } from "@/types/tmdb";
 
-import { MovieDetailsModal, MovieVoteCard } from "@/components";
+import { MovieDetailsModal, MovieVoteCard, ParticipantsModal } from "@/components";
 import { Button } from "@/components/ui";
 
 /**
@@ -67,6 +69,10 @@ export default function RoomScreen() {
   // Estado para el modal de detalles
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+
+  // Estado para participantes
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [participantsModalVisible, setParticipantsModalVisible] = useState(false);
 
   // Refs para trackear estado
   const hasIncrementedRef = useRef(false);
@@ -141,6 +147,23 @@ export default function RoomScreen() {
 
     return () => unsubscribe();
   }, [roomCode, userId]);
+
+  // Suscripción en tiempo real a los participantes
+  useEffect(() => {
+    if (!roomCode) return;
+
+    const unsubscribe = subscribeToParticipants(
+      roomCode,
+      (updatedParticipants) => {
+        setParticipants(updatedParticipants);
+      },
+      (error) => {
+        console.error("Error in participants subscription:", error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [roomCode]);
 
   // Refresh manual - solo actualiza el estado de refreshing
   // Las suscripciones en tiempo real se encargan de los datos
@@ -318,10 +341,20 @@ export default function RoomScreen() {
               </Text>
               <Copy size={18} color="#9ca3af" strokeWidth={2} />
             </TouchableOpacity>
-            <Text className="text-gray-400">
-              por {room.creatorName} · {room.participantCount} participante
-              {room.participantCount !== 1 ? "s" : ""}
-            </Text>
+            <TouchableOpacity
+              onPress={() => setParticipantsModalVisible(true)}
+              className="flex-row items-center gap-1"
+              activeOpacity={0.7}
+            >
+              <Text className="text-gray-400">
+                por {room.creatorName} ·{" "}
+              </Text>
+              <Users size={14} color="#9ca3af" strokeWidth={2} />
+              <Text className="text-gray-400 underline">
+                {participants.length > 0 ? participants.length : room.participantCount} participante
+                {(participants.length > 0 ? participants.length : room.participantCount) !== 1 ? "s" : ""}
+              </Text>
+            </TouchableOpacity>
           </View>
           <TouchableOpacity
             onPress={handleShare}
@@ -461,6 +494,14 @@ export default function RoomScreen() {
         visible={detailsModalVisible}
         onClose={handleCloseDetails}
         isAdded={true}
+      />
+
+      {/* Modal de participantes */}
+      <ParticipantsModal
+        visible={participantsModalVisible}
+        onClose={() => setParticipantsModalVisible(false)}
+        participants={participants}
+        currentUserId={userId}
       />
     </View>
   );
