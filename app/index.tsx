@@ -81,7 +81,7 @@ export default function WelcomeScreen() {
               className="w-full"
               onPress={handleRejoinLastRoom}
             >
-              Volver a sala {lastRoomCode}
+              Volver a ultima sala
             </Button>
           )}
 
