@@ -1,9 +1,5 @@
 import * as Clipboard from "expo-clipboard";
-import {
-  Link,
-  useLocalSearchParams,
-  useRouter,
-} from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import {
   Copy,
   Film,
@@ -14,7 +10,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -36,14 +32,20 @@ import {
 } from "@/services/firebase/movies";
 import { subscribeToParticipants } from "@/services/firebase/participants";
 import {
-  getRoomByCode,
+  closeVoting,
   incrementParticipantCount,
+  subscribeToRoom,
 } from "@/services/firebase/rooms";
 import { castVote, subscribeToUserVotes } from "@/services/firebase/votes";
 import type { Participant, Room, RoomMovie, VoteType } from "@/types/domain";
 import type { TMDBMovie } from "@/types/tmdb";
 
-import { MovieDetailsModal, MovieVoteCard, ParticipantsModal } from "@/components";
+import {
+  CountdownTimer,
+  MovieDetailsModal,
+  MovieVoteCard,
+  ParticipantsModal,
+} from "@/components";
 import { Button } from "@/components/ui";
 
 /**
@@ -72,20 +74,32 @@ export default function RoomScreen() {
 
   // Estado para participantes
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [participantsModalVisible, setParticipantsModalVisible] = useState(false);
+  const [participantsModalVisible, setParticipantsModalVisible] =
+    useState(false);
 
   // Refs para trackear estado
   const hasIncrementedRef = useRef(false);
 
-  // Cargar datos iniciales de la sala (una sola vez)
+  // Callback para cuando el tiempo termina
+  const handleTimeExpired = useCallback(async () => {
+    if (!roomCode || !room || room.status === "closed") return;
+
+    try {
+      // Cerrar la votación (sin ganador aún - se determinará en FASE 11)
+      await closeVoting(roomCode);
+    } catch (error) {
+      console.error("Error closing voting:", error);
+    }
+  }, [roomCode, room]);
+
+  // Suscripción en tiempo real a la sala
   useEffect(() => {
     if (!roomCode) return;
 
-    const loadRoom = async () => {
-      try {
-        const roomData = await getRoomByCode(roomCode);
-
-        if (!roomData) {
+    const unsubscribe = subscribeToRoom(
+      roomCode,
+      (updatedRoom) => {
+        if (!updatedRoom) {
           Alert.alert(
             "Sala no encontrada",
             "El código de sala no existe o fue eliminado.",
@@ -93,24 +107,26 @@ export default function RoomScreen() {
           );
           return;
         }
-
-        setRoom(roomData);
-
-        // Incrementar contador solo si no es creador y no se ha incrementado
-        if (!isCreator && !hasIncrementedRef.current) {
-          await incrementParticipantCount(roomCode);
-          hasIncrementedRef.current = true;
-        }
-      } catch (error) {
-        console.error("Error loading room:", error);
-        Alert.alert("Error", "No se pudo cargar la sala");
-      } finally {
+        setRoom(updatedRoom);
         setLoading(false);
-      }
-    };
+      },
+      (error) => {
+        console.error("Error in room subscription:", error);
+        Alert.alert("Error", "No se pudo cargar la sala");
+        setLoading(false);
+      },
+    );
 
-    loadRoom();
-  }, [roomCode, isCreator, router]);
+    return () => unsubscribe();
+  }, [roomCode, router]);
+
+  // Incrementar contador de participantes (solo una vez)
+  useEffect(() => {
+    if (!roomCode || !room || isCreator || hasIncrementedRef.current) return;
+
+    incrementParticipantCount(roomCode);
+    hasIncrementedRef.current = true;
+  }, [roomCode, room, isCreator]);
 
   // Suscripción en tiempo real a las películas
   useEffect(() => {
@@ -124,7 +140,7 @@ export default function RoomScreen() {
       },
       (error) => {
         console.error("Error in movies subscription:", error);
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -142,7 +158,7 @@ export default function RoomScreen() {
       },
       (error) => {
         console.error("Error in votes subscription:", error);
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -159,7 +175,7 @@ export default function RoomScreen() {
       },
       (error) => {
         console.error("Error in participants subscription:", error);
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -346,13 +362,18 @@ export default function RoomScreen() {
               className="flex-row items-center gap-1"
               activeOpacity={0.7}
             >
-              <Text className="text-gray-400">
-                por {room.creatorName} ·{" "}
-              </Text>
+              <Text className="text-gray-400">por {room.creatorName} · </Text>
               <Users size={14} color="#9ca3af" strokeWidth={2} />
               <Text className="text-gray-400 underline">
-                {participants.length > 0 ? participants.length : room.participantCount} participante
-                {(participants.length > 0 ? participants.length : room.participantCount) !== 1 ? "s" : ""}
+                {participants.length > 0
+                  ? participants.length
+                  : room.participantCount}{" "}
+                participante
+                {(participants.length > 0
+                  ? participants.length
+                  : room.participantCount) !== 1
+                  ? "s"
+                  : ""}
               </Text>
             </TouchableOpacity>
           </View>
@@ -366,7 +387,7 @@ export default function RoomScreen() {
         </View>
 
         {/* Badge de estado */}
-        {room.status === "closed" && (
+        {room.status === "closed" ? (
           <View className="bg-red-500/20 border border-red-500 rounded-lg px-3 py-2 mt-2">
             <View className="flex-row items-center gap-2">
               <Lock size={16} color="#f87171" strokeWidth={2} />
@@ -374,6 +395,11 @@ export default function RoomScreen() {
                 Votación cerrada
               </Text>
             </View>
+          </View>
+        ) : (
+          /* Countdown timer */
+          <View className="mt-2">
+            <CountdownTimer endsAt={room.endsAt} onExpire={handleTimeExpired} />
           </View>
         )}
       </View>

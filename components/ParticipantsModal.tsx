@@ -1,12 +1,6 @@
 import { Crown, User, X } from "lucide-react-native";
 import React from "react";
-import {
-  FlatList,
-  Modal,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, Modal, Text, TouchableOpacity, View } from "react-native";
 
 import type { Participant } from "@/types/domain";
 
@@ -14,7 +8,7 @@ interface ParticipantsModalProps {
   visible: boolean;
   onClose: () => void;
   participants: Participant[];
-  currentUserId?: string;
+  currentUserId?: string | null;
 }
 
 /**
@@ -50,7 +44,7 @@ export function ParticipantsModal({
             <Text className="text-white font-medium">
               {item.name}
               {isCurrentUser && (
-                <Text className="text-gray-500"> (t{'\u00fa'})</Text>
+                <Text className="text-gray-500"> (t{"\u00fa"})</Text>
               )}
             </Text>
           </View>
@@ -89,7 +83,7 @@ export function ParticipantsModal({
             <View className="items-center justify-center py-12">
               <User size={48} color="#6b7280" strokeWidth={1.5} />
               <Text className="text-gray-500 mt-4">
-                No hay participantes a{'\u00fa'}n
+                No hay participantes a{"\u00fa"}n
               </Text>
             </View>
           ) : (

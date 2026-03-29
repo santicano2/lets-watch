@@ -90,7 +90,7 @@ votes/{roomCode}_{movieId}_{userId}
 
 ---
 
-## Plan de Desarrollo (13 Fases)
+## Plan de Desarrollo (16 Fases)
 
 Ver `README.md` para el plan completo. Progreso actual:
 
@@ -102,12 +102,15 @@ Ver `README.md` para el plan completo. Progreso actual:
 - ✅ **FASE 5**: Búsqueda y selección de películas
 - ✅ **FASE 6**: Sistema de votación en tiempo real
 - ✅ **FASE 7**: Detalles de película (cast, providers, país automático)
-- ✅ **FASE 8**: Deep linking robusto (copiar código, compartir mejorado)
-- ~~FASE 9~~: Dark mode (CANCELADA - app es dark mode fijo por diseño)
-- ⏳ **FASE 10**: Notificaciones push (opcional)
-- ⏳ **FASE 11**: Mejoras UI/UX (animaciones, haptics)
-- ⏳ **FASE 12**: Testing y validaciones
-- ⏳ **FASE 13**: Build y deploy
+- ✅ **FASE 8**: Deep linking + Modal de participantes
+- ✅ **FASE 9**: Temporizador y cierre de votación
+- ⏳ **FASE 10**: Sistema "Estoy listo"
+- ⏳ **FASE 11**: Pantalla de ganador (empates + selección aleatoria)
+- ⏳ **FASE 12**: Rejoin (volver a sala después de cerrar app)
+- ⏳ **FASE 13**: Mejoras UI/UX (animaciones, haptics)
+- ⏳ **FASE 14**: Testing y validaciones
+- ⏳ **FASE 15**: Build y deploy
+- ⏳ **FASE 16**: Notificaciones push (opcional)
 
 ---
 
@@ -207,19 +210,34 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: Modal de participantes implementado
-**Último commit pendiente**: Modal de participantes (FASES 5-8 ya pendientes)
-**Próxima tarea**: FASE 10 - Notificaciones push (opcional)
+**Última actualización**: FASE 9 completada - Temporizador
+**Último commit pendiente**: FASES 5-9 pendientes de commit
+**Próxima tarea**: FASE 10 - Sistema "Estoy listo"
+
+### Decisiones de Diseño para FASES 10-12
+
+#### Cierre de Votación
+- **Temporizador** con opciones: 15 min, 30 min, 1 hora, 2 horas
+- **O** cuando todos presionan "Estoy listo" (lo que pase primero)
+- Votar es **opcional** - el botón "Estoy listo" indica que terminaron
+
+#### Empates
+- Si hay empate, se muestran las películas empatadas
+- Botón "Elegir al azar" para seleccionar ganador entre empates
+
+#### Rejoin
+- Guardar última sala en AsyncStorage
+- Mostrar botón "Volver a sala XXXXXX" en home
 
 ### Archivos Nuevos/Modificados Recientemente
 
-- `types/domain.ts` - Agregado tipo `Participant`, corregido typo `odId` -> `userId`
-- `services/firebase/participants.ts` - NUEVO: CRUD y suscripción tiempo real
-- `components/ParticipantsModal.tsx` - NUEVO: Modal para ver participantes
-- `components/index.ts` - Export de ParticipantsModal
-- `app/room/[code]/index.tsx` - Integración del modal de participantes
-- `app/create.tsx` - Registra al creador como participante
-- `app/join.tsx` - Registra al usuario como participante al unirse
+- `types/domain.ts` - Agregado `endsAt`, `duration`, `creatorId` a Room, `isReady` a Participant
+- `services/firebase/rooms.ts` - `createRoom` recibe params, `subscribeToRoom` nuevo
+- `services/firebase/participants.ts` - Agregado `setParticipantReady`, `isReady` en todos los métodos
+- `hooks/useCountdown.ts` - NUEVO: Hook para countdown con callback onExpire
+- `components/CountdownTimer.tsx` - NUEVO: Componente visual del countdown
+- `app/create.tsx` - Selector de duración (15min, 30min, 1h, 2h)
+- `app/room/[code]/index.tsx` - Countdown integrado, suscripción a sala en tiempo real
 
 ---
 

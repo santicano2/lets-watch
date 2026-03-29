@@ -1,22 +1,23 @@
+import { Participant } from "@/types/domain";
 import {
   collection,
   doc,
   getDoc,
-  setDoc,
   getDocs,
-  query,
-  orderBy,
   onSnapshot,
+  orderBy,
+  query,
+  setDoc,
+  updateDoc,
   type Unsubscribe,
-} from 'firebase/firestore';
-import { db } from './config';
-import { Participant } from '@/types/domain';
+} from "firebase/firestore";
+import { db } from "./config";
 
 /**
  * Obtiene la referencia a la subcolección de participantes de una sala
  */
 function getParticipantsCollection(roomCode: string) {
-  return collection(db, 'rooms', roomCode, 'participants');
+  return collection(db, "rooms", roomCode, "participants");
 }
 
 /**
@@ -27,7 +28,7 @@ export async function addParticipant(
   roomCode: string,
   userId: string,
   name: string,
-  isCreator: boolean = false
+  isCreator: boolean = false,
 ): Promise<Participant> {
   const participantsCol = getParticipantsCollection(roomCode);
   const participantRef = doc(participantsCol, userId);
@@ -42,6 +43,7 @@ export async function addParticipant(
       name: data.name,
       joinedAt: new Date(data.joinedAt),
       isCreator: data.isCreator,
+      isReady: data.isReady || false,
     };
   }
 
@@ -50,6 +52,7 @@ export async function addParticipant(
     name,
     joinedAt: new Date(),
     isCreator,
+    isReady: false,
   };
 
   await setDoc(participantRef, {
@@ -63,9 +66,11 @@ export async function addParticipant(
 /**
  * Obtiene todos los participantes de una sala
  */
-export async function getParticipants(roomCode: string): Promise<Participant[]> {
+export async function getParticipants(
+  roomCode: string,
+): Promise<Participant[]> {
   const participantsCol = getParticipantsCollection(roomCode);
-  const q = query(participantsCol, orderBy('joinedAt', 'asc'));
+  const q = query(participantsCol, orderBy("joinedAt", "asc"));
   const snapshot = await getDocs(q);
 
   return snapshot.docs.map((doc) => {
@@ -75,6 +80,7 @@ export async function getParticipants(roomCode: string): Promise<Participant[]> 
       name: data.name,
       joinedAt: new Date(data.joinedAt),
       isCreator: data.isCreator,
+      isReady: data.isReady || false,
     };
   });
 }
@@ -84,7 +90,7 @@ export async function getParticipants(roomCode: string): Promise<Participant[]> 
  */
 export async function getParticipant(
   roomCode: string,
-  userId: string
+  userId: string,
 ): Promise<Participant | null> {
   const participantsCol = getParticipantsCollection(roomCode);
   const participantRef = doc(participantsCol, userId);
@@ -100,7 +106,21 @@ export async function getParticipant(
     name: data.name,
     joinedAt: new Date(data.joinedAt),
     isCreator: data.isCreator,
+    isReady: data.isReady || false,
   };
+}
+
+/**
+ * Actualiza el estado "listo" de un participante
+ */
+export async function setParticipantReady(
+  roomCode: string,
+  userId: string,
+  isReady: boolean,
+): Promise<void> {
+  const participantsCol = getParticipantsCollection(roomCode);
+  const participantRef = doc(participantsCol, userId);
+  await updateDoc(participantRef, { isReady });
 }
 
 /**
@@ -110,10 +130,10 @@ export async function getParticipant(
 export function subscribeToParticipants(
   roomCode: string,
   onParticipantsChange: (participants: Participant[]) => void,
-  onError?: (error: Error) => void
+  onError?: (error: Error) => void,
 ): Unsubscribe {
   const participantsCol = getParticipantsCollection(roomCode);
-  const q = query(participantsCol, orderBy('joinedAt', 'asc'));
+  const q = query(participantsCol, orderBy("joinedAt", "asc"));
 
   return onSnapshot(
     q,
@@ -125,13 +145,14 @@ export function subscribeToParticipants(
           name: data.name,
           joinedAt: new Date(data.joinedAt),
           isCreator: data.isCreator,
+          isReady: data.isReady || false,
         } as Participant;
       });
       onParticipantsChange(participants);
     },
     (error) => {
-      console.error('Error in participants subscription:', error);
+      console.error("Error in participants subscription:", error);
       onError?.(error);
-    }
+    },
   );
 }

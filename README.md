@@ -250,27 +250,41 @@ votes/{voteId}
 - La app usa dark mode fijo por diseño (fondo negro, textos claros)
 - No se implementará toggle de tema
 
-### 🔔 FASE 10: Notificaciones Push (Opcional)
-- [ ] Configurar Firebase Cloud Messaging
-- [ ] Pedir permisos de notificaciones
-- [ ] Guardar tokens FCM en Firestore
-- [ ] Notificar cuando:
-  - [ ] Alguien se une a tu sala
-  - [ ] Se agrega nueva película
-  - [ ] Todos han votado
+### ⏱️ FASE 9: Temporizador y Cierre de Votación (COMPLETADA)
+- [x] Agregar campos `endsAt` (timestamp) y `duration` (minutos) a Room
+- [x] Selector de duración en `create.tsx` (15min, 30min, 1h, 2h)
+- [x] Mostrar countdown en la sala (tiempo restante)
+- [x] Auto-cerrar votación cuando el tiempo termina
+- [x] Suscripción en tiempo real al estado de la sala
 
-### 🎨 FASE 11: Mejoras UI/UX
+### ✋ FASE 10: Sistema "Estoy Listo"
+- [ ] Agregar campo `isReady` a Participant
+- [ ] Botón "Estoy listo" en pantalla de sala
+- [ ] Mostrar contador "X/Y listos"
+- [ ] Detectar cuando todos están listos → cerrar votación
+- [ ] Permitir quitar "listo" antes de que cierre
+
+### 🏆 FASE 11: Pantalla de Ganador
+- [ ] Calcular ganador(es) al cerrar votación
+- [ ] Si hay empate: mostrar películas empatadas + botón "Elegir al azar"
+- [ ] Animación de selección aleatoria
+- [ ] Pantalla de resultado final
+- [ ] Guardar `selectedMovieId` en Room
+
+### 🔄 FASE 12: Rejoin (Volver a Sala)
+- [ ] Guardar última sala en AsyncStorage (`lastRoomCode`)
+- [ ] Botón "Volver a sala XXXXXX" en pantalla home
+- [ ] Limpiar si la sala ya no existe o expiró
+- [ ] Validar que el usuario era participante
+
+### 🎨 FASE 13: Mejoras UI/UX
 - [ ] Skeleton loaders para películas
-- [ ] Animaciones con Reanimated:
-  - [ ] Fade in/out para películas
-  - [ ] Spring animation para votos
-  - [ ] Slide in para modales
+- [ ] Animaciones con Reanimated (votos, countdown, selección ganador)
 - [ ] Haptic feedback en votaciones
 - [ ] Estados vacíos personalizados
 - [ ] Toast notifications
-- [ ] Accesibilidad (labels, contrast ratios)
 
-### 🧪 FASE 12: Testing y Validaciones
+### 🧪 FASE 14: Testing y Validaciones
 - [ ] Validaciones de negocio:
   - [ ] Máximo de películas por sala (10)
   - [ ] No agregar duplicadas
@@ -280,13 +294,22 @@ votes/{voteId}
 - [ ] Mensajes de error amigables
 - [ ] Manejo de offline
 
-### 📦 FASE 13: Build y Deploy
+### 📦 FASE 15: Build y Deploy
 - [ ] Configurar EAS Build
 - [ ] Crear builds de desarrollo
 - [ ] Configurar signing para iOS/Android
 - [ ] Testear en dispositivos físicos
 - [ ] Optimizar bundle size
 - [ ] Preparar para tiendas
+
+### 🔔 FASE 16: Notificaciones Push (Opcional)
+- [ ] Configurar Firebase Cloud Messaging
+- [ ] Pedir permisos de notificaciones
+- [ ] Guardar tokens FCM en Firestore
+- [ ] Notificar cuando:
+  - [ ] Alguien se une a tu sala
+  - [ ] Se agrega nueva película
+  - [ ] La votación termina
 
 ## 🔒 Seguridad
 
@@ -320,4 +343,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 28, 2026 - Modal de participantes implementado
+**Última actualización**: Marzo 28, 2026 - FASE 9 completada (Temporizador)

@@ -1,26 +1,34 @@
+import { Room, RoomDuration, RoomStatus } from "@/types/domain";
+import { generateRoomCode } from "@/utils/roomCode";
 import {
-  collection,
+  deleteDoc,
   doc,
   getDoc,
+  onSnapshot,
+  serverTimestamp,
   setDoc,
   updateDoc,
-  deleteDoc,
-  serverTimestamp,
-  query,
-  where,
-  getDocs,
-} from 'firebase/firestore';
-import { db } from './config';
-import { Room, RoomStatus } from '@/types/domain';
-import { generateRoomCode } from '@/utils/roomCode';
+  type Unsubscribe,
+} from "firebase/firestore";
+import { db } from "./config";
 
-const ROOMS_COLLECTION = 'rooms';
+const ROOMS_COLLECTION = "rooms";
+
+interface CreateRoomParams {
+  creatorName: string;
+  creatorId: string;
+  duration: RoomDuration;
+}
 
 /**
  * Crea una nueva sala de votación
  * Genera un código único de 6 caracteres
  */
-export async function createRoom(creatorName: string): Promise<Room> {
+export async function createRoom({
+  creatorName,
+  creatorId,
+  duration,
+}: CreateRoomParams): Promise<Room> {
   // Generar código único (verificar que no exista)
   let roomCode: string;
   let attempts = 0;
@@ -34,14 +42,20 @@ export async function createRoom(creatorName: string): Promise<Room> {
   } while (attempts < maxAttempts);
 
   if (attempts === maxAttempts) {
-    throw new Error('No se pudo generar un código único de sala');
+    throw new Error("No se pudo generar un código único de sala");
   }
+
+  const now = new Date();
+  const endsAt = new Date(now.getTime() + duration * 60 * 1000);
 
   const room: Room = {
     code: roomCode,
     creatorName,
-    status: 'voting',
-    createdAt: new Date(),
+    creatorId,
+    status: "voting",
+    createdAt: now,
+    endsAt,
+    duration,
     participantCount: 1,
   };
 
@@ -50,6 +64,7 @@ export async function createRoom(creatorName: string): Promise<Room> {
   await setDoc(roomRef, {
     ...room,
     createdAt: serverTimestamp(),
+    endsAt: endsAt.toISOString(),
   });
 
   return room;
@@ -70,11 +85,53 @@ export async function getRoomByCode(code: string): Promise<Room | null> {
   return {
     code: roomSnap.id,
     creatorName: data.creatorName,
+    creatorId: data.creatorId || "",
     status: data.status,
-    createdAt: data.createdAt?.toDate() || new Date(),
+    createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+    endsAt: data.endsAt ? new Date(data.endsAt) : new Date(),
+    duration: data.duration || 30,
     participantCount: data.participantCount,
     selectedMovieId: data.selectedMovieId,
   };
+}
+
+/**
+ * Suscripción en tiempo real a una sala
+ */
+export function subscribeToRoom(
+  code: string,
+  onRoomChange: (room: Room | null) => void,
+  onError?: (error: Error) => void,
+): Unsubscribe {
+  const roomRef = doc(db, ROOMS_COLLECTION, code);
+
+  return onSnapshot(
+    roomRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        onRoomChange(null);
+        return;
+      }
+
+      const data = snapshot.data();
+      const room: Room = {
+        code: snapshot.id,
+        creatorName: data.creatorName,
+        creatorId: data.creatorId || "",
+        status: data.status,
+        createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+        endsAt: data.endsAt ? new Date(data.endsAt) : new Date(),
+        duration: data.duration || 30,
+        participantCount: data.participantCount,
+        selectedMovieId: data.selectedMovieId,
+      };
+      onRoomChange(room);
+    },
+    (error) => {
+      console.error("Error in room subscription:", error);
+      onError?.(error);
+    },
+  );
 }
 
 /**
@@ -82,7 +139,7 @@ export async function getRoomByCode(code: string): Promise<Room | null> {
  */
 export async function updateRoomStatus(
   code: string,
-  status: RoomStatus
+  status: RoomStatus,
 ): Promise<void> {
   const roomRef = doc(db, ROOMS_COLLECTION, code);
   await updateDoc(roomRef, { status });
@@ -93,12 +150,12 @@ export async function updateRoomStatus(
  */
 export async function closeVoting(
   code: string,
-  selectedMovieId: number
+  selectedMovieId?: number,
 ): Promise<void> {
   const roomRef = doc(db, ROOMS_COLLECTION, code);
   await updateDoc(roomRef, {
-    status: 'closed',
-    selectedMovieId,
+    status: "closed",
+    ...(selectedMovieId && { selectedMovieId }),
   });
 }
 
@@ -108,7 +165,7 @@ export async function closeVoting(
 export async function incrementParticipantCount(code: string): Promise<void> {
   const roomRef = doc(db, ROOMS_COLLECTION, code);
   const roomSnap = await getDoc(roomRef);
-  
+
   if (roomSnap.exists()) {
     const currentCount = roomSnap.data().participantCount || 0;
     await updateDoc(roomRef, {
