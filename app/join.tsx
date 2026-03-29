@@ -6,6 +6,7 @@ import { Alert, ScrollView, Text, View } from "react-native";
 import { useUser } from "@/hooks/useUser";
 import { addParticipant } from "@/services/firebase/participants";
 import { getRoomByCode } from "@/services/firebase/rooms";
+import { saveLastRoomCode } from "@/utils/lastRoom";
 import { isValidRoomCode } from "@/utils/roomCode";
 
 import { Button, Input } from "@/components/ui";
@@ -73,6 +74,9 @@ export default function JoinRoomScreen() {
         await addParticipant(code, userId, name, false);
       }
 
+      // Guardar última sala para rejoin rápido
+      await saveLastRoomCode(code);
+
       // Navegar a la sala con el nombre del usuario
       router.push(`/room/${code}?userName=${encodeURIComponent(name)}` as any);
     } catch (err) {
@@ -138,7 +142,9 @@ export default function JoinRoomScreen() {
           <Button
             onPress={handleJoinRoom}
             loading={loading}
-            disabled={loading || roomCode.length !== 6 || userName.trim().length < 2}
+            disabled={
+              loading || roomCode.length !== 6 || userName.trim().length < 2
+            }
             size="lg"
           >
             Unirse a Sala

@@ -30,6 +30,9 @@ App móvil para crear salas de votación de películas en grupo. Crea una sala, 
 - ✅ Notificaciones push (cuando se agregan películas o se completa votación)
 - ✅ Película ganadora automática (más votos netos)
 - ✅ Detección automática de país para plataformas de streaming
+- ✅ Rejoin rápido a la última sala desde el inicio
+- ✅ Toast en sala cuando se conecta un nuevo participante
+- ✅ Vista de votación en grid de 2 columnas
 
 ## 📁 Estructura del Proyecto
 
@@ -343,4 +346,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 28, 2026 - FASE 9 completada (Temporizador)
+**Última actualización**: Marzo 29, 2026 - UX de sala mejorada (toast, rejoin, grid 2 columnas)

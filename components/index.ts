@@ -8,3 +8,4 @@ export { MovieDetailsModal } from "./MovieDetailsModal";
 export { MovieVoteCard } from "./MovieVoteCard";
 export { ParticipantsModal } from "./ParticipantsModal";
 export { SearchBar } from "./SearchBar";
+export { Toast } from "./Toast";

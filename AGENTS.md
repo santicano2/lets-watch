@@ -210,8 +210,8 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 9 completada - Temporizador
-**Último commit pendiente**: FASES 5-9 pendientes de commit
+**Última actualización**: UX de sala mejorada (toast, rejoin, grid)
+**Último commit pendiente**: FASES 5-9 + mejoras UX pendientes de commit
 **Próxima tarea**: FASE 10 - Sistema "Estoy listo"
 
 ### Decisiones de Diseño para FASES 10-12
@@ -236,8 +236,12 @@ pnpm build:ios
 - `services/firebase/participants.ts` - Agregado `setParticipantReady`, `isReady` en todos los métodos
 - `hooks/useCountdown.ts` - NUEVO: Hook para countdown con callback onExpire
 - `components/CountdownTimer.tsx` - NUEVO: Componente visual del countdown
+- `components/Toast.tsx` - NUEVO: Toast temporal para eventos en sala
+- `utils/lastRoom.ts` - NUEVO: Persistencia de última sala para rejoin
 - `app/create.tsx` - Selector de duración (15min, 30min, 1h, 2h)
-- `app/room/[code]/index.tsx` - Countdown integrado, suscripción a sala en tiempo real
+- `app/join.tsx` - Guarda última sala al unirse
+- `app/index.tsx` - Botón "Volver a sala" si existe última sala válida
+- `app/room/[code]/index.tsx` - Toast de nuevos participantes + grid 2 columnas
 
 ---
 

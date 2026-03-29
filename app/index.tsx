@@ -1,15 +1,55 @@
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { Film, Popcorn, Users, Zap } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 import { Button } from "@/components/ui";
+import { getRoomByCode } from "@/services/firebase/rooms";
+import { clearLastRoomCode, getLastRoomCode } from "@/utils/lastRoom";
 
 /**
  * Pantalla de bienvenida
  * Punto de entrada de la app con opciones para crear o unirse a sala
  */
 export default function WelcomeScreen() {
+  const router = useRouter();
+  const [lastRoomCode, setLastRoomCode] = useState<string | null>(null);
+  const [checkingLastRoom, setCheckingLastRoom] = useState(true);
+
+  useEffect(() => {
+    const loadLastRoom = async () => {
+      try {
+        const storedCode = await getLastRoomCode();
+
+        if (!storedCode) {
+          setLastRoomCode(null);
+          return;
+        }
+
+        const room = await getRoomByCode(storedCode);
+        if (!room) {
+          await clearLastRoomCode();
+          setLastRoomCode(null);
+          return;
+        }
+
+        setLastRoomCode(storedCode);
+      } catch (error) {
+        console.error("Error loading last room:", error);
+        setLastRoomCode(null);
+      } finally {
+        setCheckingLastRoom(false);
+      }
+    };
+
+    loadLastRoom();
+  }, []);
+
+  const handleRejoinLastRoom = () => {
+    if (!lastRoomCode) return;
+    router.push(`/room/${lastRoomCode}` as any);
+  };
+
   return (
     <View className="flex-1 bg-black">
       {/* Hero Section */}
@@ -34,6 +74,17 @@ export default function WelcomeScreen() {
 
         {/* Botones principales */}
         <View className="w-full gap-4 px-4 max-w-md">
+          {!checkingLastRoom && lastRoomCode && (
+            <Button
+              size="lg"
+              variant="secondary"
+              className="w-full"
+              onPress={handleRejoinLastRoom}
+            >
+              Volver a sala {lastRoomCode}
+            </Button>
+          )}
+
           <Link href={"/create" as any} asChild>
             <Button size="lg" className="w-full">
               Crear Sala

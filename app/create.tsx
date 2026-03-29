@@ -7,6 +7,7 @@ import { useUser } from "@/hooks/useUser";
 import { addParticipant } from "@/services/firebase/participants";
 import { createRoom } from "@/services/firebase/rooms";
 import type { RoomDuration } from "@/types/domain";
+import { saveLastRoomCode } from "@/utils/lastRoom";
 
 import { Button, Input } from "@/components/ui";
 
@@ -57,6 +58,9 @@ export default function CreateRoomScreen() {
 
       // Registrar al creador como participante
       await addParticipant(room.code, userId, creatorName.trim(), true);
+
+      // Guardar última sala para rejoin rápido
+      await saveLastRoomCode(room.code);
 
       // Navegar a la sala creada (isCreator=true para no incrementar contador)
       router.push(`/room/${room.code}?isCreator=true` as any);

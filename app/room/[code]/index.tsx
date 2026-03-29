@@ -17,7 +17,6 @@ import {
   FlatList,
   Platform,
   RefreshControl,
-  ScrollView,
   Share,
   Text,
   ToastAndroid,
@@ -45,8 +44,10 @@ import {
   MovieDetailsModal,
   MovieVoteCard,
   ParticipantsModal,
+  Toast,
 } from "@/components";
 import { Button } from "@/components/ui";
+import { saveLastRoomCode } from "@/utils/lastRoom";
 
 /**
  * Pantalla principal de la sala de votación
@@ -59,14 +60,15 @@ export default function RoomScreen() {
   const isCreator = params.isCreator === "true";
 
   // Hook para obtener el ID del usuario
-  const { userId, loading: userLoading } = useUser();
+  const { userId } = useUser();
 
   const [room, setRoom] = useState<Room | null>(null);
   const [movies, setMovies] = useState<RoomMovie[]>([]);
   const [userVotes, setUserVotes] = useState<Map<number, VoteType>>(new Map());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   // Estado para el modal de detalles
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
@@ -79,6 +81,8 @@ export default function RoomScreen() {
 
   // Refs para trackear estado
   const hasIncrementedRef = useRef(false);
+  const hasLoadedParticipantsRef = useRef(false);
+  const previousParticipantsRef = useRef<Participant[]>([]);
 
   // Callback para cuando el tiempo termina
   const handleTimeExpired = useCallback(async () => {
@@ -128,6 +132,14 @@ export default function RoomScreen() {
     hasIncrementedRef.current = true;
   }, [roomCode, room, isCreator]);
 
+  // Guardar última sala para rejoin rápido
+  useEffect(() => {
+    if (!roomCode) return;
+    saveLastRoomCode(roomCode).catch((error) => {
+      console.error("Error saving last room code:", error);
+    });
+  }, [roomCode, userId]);
+
   // Suscripción en tiempo real a las películas
   useEffect(() => {
     if (!roomCode) return;
@@ -144,7 +156,7 @@ export default function RoomScreen() {
     );
 
     return () => unsubscribe();
-  }, [roomCode]);
+  }, [roomCode, userId]);
 
   // Suscripción en tiempo real a los votos del usuario
   useEffect(() => {
@@ -171,6 +183,28 @@ export default function RoomScreen() {
     const unsubscribe = subscribeToParticipants(
       roomCode,
       (updatedParticipants) => {
+        if (hasLoadedParticipantsRef.current) {
+          const previousIds = new Set(
+            previousParticipantsRef.current.map(
+              (participant) => participant.userId,
+            ),
+          );
+
+          const newParticipants = updatedParticipants.filter(
+            (participant) =>
+              !previousIds.has(participant.userId) &&
+              participant.userId !== userId,
+          );
+
+          if (newParticipants.length > 0) {
+            const latest = newParticipants[newParticipants.length - 1];
+            setToastMessage(`${latest.name} se unio a la sala`);
+            setShowToast(true);
+          }
+        }
+
+        previousParticipantsRef.current = updatedParticipants;
+        hasLoadedParticipantsRef.current = true;
         setParticipants(updatedParticipants);
       },
       (error) => {
@@ -179,7 +213,7 @@ export default function RoomScreen() {
     );
 
     return () => unsubscribe();
-  }, [roomCode]);
+  }, [roomCode, userId]);
 
   // Refresh manual - solo actualiza el estado de refreshing
   // Las suscripciones en tiempo real se encargan de los datos
@@ -262,10 +296,6 @@ export default function RoomScreen() {
             try {
               // La suscripción en tiempo real actualizará la lista automáticamente
               await removeMovieFromRoom(roomCode!, movieId);
-              // Resetear índice si es necesario
-              if (currentMovieIndex >= movies.length - 1) {
-                setCurrentMovieIndex(Math.max(0, movies.length - 2));
-              }
             } catch (error) {
               console.error("Error deleting movie:", error);
               Alert.alert("Error", "No se pudo eliminar la película");
@@ -274,13 +304,6 @@ export default function RoomScreen() {
         },
       ],
     );
-  };
-
-  const handleScroll = (event: any) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    const cardWidth = Dimensions.get("window").width * 0.75 + 16;
-    const index = Math.round(scrollPosition / cardWidth);
-    setCurrentMovieIndex(index);
   };
 
   // Función para abrir el modal de detalles
@@ -423,84 +446,61 @@ export default function RoomScreen() {
         </View>
       )}
 
-      {/* Lista de películas */}
-      <ScrollView
-        className="flex-1"
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-      >
-        {movies.length === 0 ? (
-          <View className="items-center justify-center py-12 px-6">
-            <View className="mb-4">
-              <Film size={64} color="#9ca3af" strokeWidth={1.5} />
+      {/* Lista de películas (2 columnas) */}
+      {movies.length === 0 ? (
+        <View className="flex-1 items-center justify-center py-12 px-6">
+          <View className="mb-4">
+            <Film size={64} color="#9ca3af" strokeWidth={1.5} />
+          </View>
+          <Text className="text-white text-xl font-bold mb-2 text-center">
+            No hay películas todavía
+          </Text>
+          <Text className="text-gray-400 text-center mb-6">
+            Sé el primero en agregar una película a la sala
+          </Text>
+          {room.status === "voting" && (
+            <Link href={`/room/${roomCode}/search` as any} asChild>
+              <Button>Agregar Película</Button>
+            </Link>
+          )}
+        </View>
+      ) : (
+        <FlatList
+          className="flex-1"
+          data={movies}
+          numColumns={2}
+          keyExtractor={(item) => item.id.toString()}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+          contentContainerStyle={{
+            paddingTop: 20,
+            paddingBottom: 120,
+            paddingHorizontal: 24,
+          }}
+          columnWrapperStyle={{ gap: 12, marginBottom: 16 }}
+          renderItem={({ item: movie }) => (
+            <View
+              style={{
+                width: (Dimensions.get("window").width - 24 * 2 - 12) / 2,
+              }}
+            >
+              <MovieVoteCard
+                movie={movie}
+                userVote={userVotes.get(movie.id) || null}
+                onUpvote={() => handleVote(movie.id, "upvote")}
+                onDownvote={() => handleVote(movie.id, "downvote")}
+                onDelete={
+                  room.status === "voting"
+                    ? () => handleDeleteMovie(movie.id, movie.title)
+                    : undefined
+                }
+                onPress={() => handleShowDetails(movie)}
+              />
             </View>
-            <Text className="text-white text-xl font-bold mb-2 text-center">
-              No hay películas todavía
-            </Text>
-            <Text className="text-gray-400 text-center mb-6">
-              Sé el primero en agregar una película a la sala
-            </Text>
-            {room.status === "voting" && (
-              <Link href={`/room/${roomCode}/search` as any} asChild>
-                <Button>Agregar Película</Button>
-              </Link>
-            )}
-          </View>
-        ) : (
-          <View className="py-6">
-            {/* Carousel de películas */}
-            <FlatList
-              data={movies}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={Dimensions.get("window").width * 0.75 + 16}
-              decelerationRate="fast"
-              contentContainerStyle={{ paddingHorizontal: 24 }}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              renderItem={({ item: movie }) => (
-                <View
-                  style={{
-                    width: Dimensions.get("window").width * 0.75,
-                    marginRight: 16,
-                  }}
-                >
-                  <MovieVoteCard
-                    movie={movie}
-                    userVote={userVotes.get(movie.id) || null}
-                    onUpvote={() => handleVote(movie.id, "upvote")}
-                    onDownvote={() => handleVote(movie.id, "downvote")}
-                    onDelete={
-                      room.status === "voting"
-                        ? () => handleDeleteMovie(movie.id, movie.title)
-                        : undefined
-                    }
-                    onPress={() => handleShowDetails(movie)}
-                  />
-                </View>
-              )}
-              keyExtractor={(item) => item.id.toString()}
-            />
-
-            {/* Indicador de posición */}
-            {movies.length > 1 && (
-              <View className="flex-row justify-center gap-2 mt-4">
-                {movies.map((_, index) => (
-                  <View
-                    key={index}
-                    className={`h-2 rounded-full transition-all ${
-                      index === currentMovieIndex
-                        ? "w-6 bg-green-500"
-                        : "w-2 bg-gray-600"
-                    }`}
-                  />
-                ))}
-              </View>
-            )}
-          </View>
-        )}
-      </ScrollView>
+          )}
+        />
+      )}
 
       {/* FAB - Agregar película */}
       {room.status === "voting" && movies.length > 0 && (
@@ -513,6 +513,13 @@ export default function RoomScreen() {
           </TouchableOpacity>
         </Link>
       )}
+
+      <Toast
+        message={toastMessage}
+        visible={showToast}
+        type="success"
+        onHide={() => setShowToast(false)}
+      />
 
       {/* Modal de detalles de película */}
       <MovieDetailsModal
