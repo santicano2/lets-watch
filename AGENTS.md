@@ -198,6 +198,12 @@ pnpm build:ios
 - Verificar que variables de entorno y archivos no ignorados por `.gitignore` esten correctos
 - Si hay diferencias local vs EAS, alinear versiones de herramientas y entorno
 
+### Referencias oficiales Vercel (PWA/Web deploy)
+
+- CLI deploy: https://vercel.com/docs/cli/deploy
+- Configuracion de build: https://vercel.com/docs/builds/configure-a-build
+- Frameworks soportados y auto-deteccion: https://vercel.com/docs/frameworks
+
 ---
 
 ## Próximos Pasos Inmediatos
