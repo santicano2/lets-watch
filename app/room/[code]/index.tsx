@@ -4,6 +4,7 @@ import {
   Copy,
   Film,
   Frown,
+  Home,
   Lock,
   Plus,
   Share2,
@@ -319,6 +320,21 @@ export default function RoomScreen() {
     }
   };
 
+  const handleExitRoom = () => {
+    Alert.alert(
+      "Salir de la sala",
+      "¿Quieres volver al inicio?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Salir",
+          style: "destructive",
+          onPress: () => router.replace("/" as any),
+        },
+      ],
+    );
+  };
+
   const handleVote = async (movieId: number, voteType: VoteType) => {
     if (!roomCode || !userId) {
       Alert.alert("Error", "No se pudo registrar el voto. Intenta de nuevo.");
@@ -484,13 +500,22 @@ export default function RoomScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={handleShare}
-            className="bg-blue-500 rounded-xl p-3"
-            activeOpacity={0.7}
-          >
-            <Share2 size={22} color="white" strokeWidth={2} />
-          </TouchableOpacity>
+          <View className="flex-row items-center gap-2">
+            <TouchableOpacity
+              onPress={handleExitRoom}
+              className="bg-gray-700 rounded-xl p-3"
+              activeOpacity={0.7}
+            >
+              <Home size={20} color="white" strokeWidth={2} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleShare}
+              className="bg-blue-500 rounded-xl p-3"
+              activeOpacity={0.7}
+            >
+              <Share2 size={22} color="white" strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Badge de estado */}
