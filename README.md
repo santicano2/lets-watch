@@ -333,6 +333,7 @@ votes/{voteId}
 ### 📦 FASE 15: Build y Deploy
 
 - [x] Configurar EAS Build
+- [x] Configurar base PWA online-first (manifest + service worker + installable web)
 - [ ] Crear builds de desarrollo
 - [ ] Configurar signing para iOS/Android
 - [ ] Testear en dispositivos físicos

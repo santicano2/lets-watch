@@ -236,9 +236,9 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 15 iniciada - EAS configurado
+**Última actualización**: FASE 15 en progreso - EAS configurado + base PWA online-first
 **Último commit pendiente**: FASES 5-14 + FASE 15 parcial pendientes de commit
-**Próxima tarea**: FASE 15 - generar builds y configurar signing
+**Próxima tarea**: FASE 15 - completar builds/signing Android y validar PWA online-first
 
 ### Decisiones de Diseño para FASES 10-12
 
@@ -276,6 +276,10 @@ pnpm build:ios
 - `eas.json` - NUEVO: perfiles de build (`development`, `preview`, `production`)
 - `app.json` - runtimeVersion + versionCode/buildNumber para stores
 - `package.json` - scripts EAS (`build:android`, `build:ios`, `submit:*`)
+- `app/+html.tsx` - NUEVO: metadata web para instalacion PWA
+- `public/manifest.webmanifest` - NUEVO: manifest de PWA
+- `public/sw.js` - NUEVO: service worker con cache basico para app shell
+- `public/pwa-192.png` y `public/pwa-512.png` - NUEVO: iconos instalables
 
 ---
 

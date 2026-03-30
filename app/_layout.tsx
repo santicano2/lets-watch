@@ -78,6 +78,17 @@ export default function RootLayout() {
     };
   }, [router]);
 
+  // Registrar service worker para PWA en web (solo producción)
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    if (__DEV__) return;
+    if (!("serviceWorker" in navigator)) return;
+
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.error("Error registrando service worker:", error);
+    });
+  }, []);
+
   // Mostrar loading mientras se procesa el deep link
   if (isProcessingLink) {
     return (
