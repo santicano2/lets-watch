@@ -1,3 +1,4 @@
+import * as Haptics from "expo-haptics";
 import { Trophy } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
@@ -41,10 +42,16 @@ export function WinnerRevealModal({
         if (interval) clearInterval(interval);
         setCurrentMovieId(winner.id);
         setIsAnimating(false);
+        Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        ).catch(() => {});
       }, 2600);
     } else {
       setCurrentMovieId(winner.id);
       setIsAnimating(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
+        () => {},
+      );
     }
 
     return () => {

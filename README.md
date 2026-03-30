@@ -297,11 +297,11 @@ votes/{voteId}
 
 ### 🎨 FASE 13: Mejoras UI/UX
 
-- [ ] Skeleton loaders para películas
-- [ ] Animaciones con Reanimated (votos, countdown, selección ganador)
-- [ ] Haptic feedback en votaciones
-- [ ] Estados vacíos personalizados
-- [ ] Toast notifications
+- [x] Skeleton loaders para películas
+- [x] Animaciones de entrada en grid + reveal de ganadora
+- [x] Haptic feedback en votaciones y acciones clave
+- [x] Estados vacíos personalizados
+- [x] Toast notifications
 
 ### 🧪 FASE 14: Testing y Validaciones
 
@@ -365,4 +365,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 29, 2026 - FASE 12 completada (rejoin validado)
+**Última actualización**: Marzo 29, 2026 - FASE 13 completada (UI/UX)

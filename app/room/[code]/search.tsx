@@ -20,7 +20,13 @@ import {
 import { getPopularMovies, searchMovies } from "@/services/tmdb/client";
 import type { TMDBMovie } from "@/types/tmdb";
 
-import { MovieCard, MovieDetailsModal, SearchBar } from "@/components";
+import {
+  AnimatedGridItem,
+  MovieCard,
+  MovieDetailsModal,
+  MovieVoteCardSkeleton,
+  SearchBar,
+} from "@/components";
 
 /**
  * Pantalla de búsqueda y selección de películas
@@ -185,7 +191,8 @@ export default function SearchMovieScreen() {
     const isLeftColumn = index % 2 === 0;
 
     return (
-      <View
+      <AnimatedGridItem
+        index={index}
         style={{
           width: cardWidth,
           marginBottom: 16,
@@ -204,7 +211,7 @@ export default function SearchMovieScreen() {
             <Text className="text-white text-xs font-semibold">Agregada</Text>
           </View>
         )}
-      </View>
+      </AnimatedGridItem>
     );
   };
 
@@ -260,9 +267,23 @@ export default function SearchMovieScreen() {
 
         {/* Loading inicial */}
         {initialLoading && (
-          <View className="flex-1 items-center justify-center px-6">
-            <ActivityIndicator size="large" color="#22c55e" />
-            <Text className="text-gray-400 mt-4">Cargando películas...</Text>
+          <View className="flex-1 px-6 pt-5">
+            <View className="flex-row gap-3 mb-4">
+              <View style={{ width: cardWidth }}>
+                <MovieVoteCardSkeleton />
+              </View>
+              <View style={{ width: cardWidth }}>
+                <MovieVoteCardSkeleton />
+              </View>
+            </View>
+            <View className="flex-row gap-3">
+              <View style={{ width: cardWidth }}>
+                <MovieVoteCardSkeleton />
+              </View>
+              <View style={{ width: cardWidth }}>
+                <MovieVoteCardSkeleton />
+              </View>
+            </View>
           </View>
         )}
 
@@ -277,12 +298,21 @@ export default function SearchMovieScreen() {
         {/* Sin resultados */}
         {!loading && !initialLoading && movies.length === 0 && query && (
           <View className="flex-1 items-center justify-center px-6">
+            <View className="w-16 h-16 rounded-full bg-gray-800 items-center justify-center mb-4">
+              <TrendingUp size={28} color="#6b7280" strokeWidth={1.8} />
+            </View>
             <Text className="text-white text-xl font-bold mb-2">
               Sin resultados
             </Text>
-            <Text className="text-gray-400 text-center">
+            <Text className="text-gray-400 text-center mb-4">
               No se encontraron películas para &quot;{query}&quot;
             </Text>
+            <View className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 w-full max-w-sm">
+              <Text className="text-gray-300 text-sm text-center">
+                Intenta buscar por título original, solo una palabra o sin
+                acentos.
+              </Text>
+            </View>
           </View>
         )}
 

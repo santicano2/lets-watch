@@ -107,7 +107,7 @@ Ver `README.md` para el plan completo. Progreso actual:
 - ✅ **FASE 10**: Sistema "Estoy listo"
 - ✅ **FASE 11**: Pantalla de ganador (empates + selección aleatoria)
 - ✅ **FASE 12**: Rejoin (volver a sala después de cerrar app)
-- ⏳ **FASE 13**: Mejoras UI/UX (animaciones, haptics)
+- ✅ **FASE 13**: Mejoras UI/UX (animaciones, haptics)
 - ⏳ **FASE 14**: Testing y validaciones
 - ⏳ **FASE 15**: Build y deploy
 - ⏳ **FASE 16**: Notificaciones push (opcional)
@@ -210,9 +210,9 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 12 completada - rejoin validado
-**Último commit pendiente**: FASES 5-12 + mejoras UX pendientes de commit
-**Próxima tarea**: FASE 13 - Mejoras UI/UX
+**Última actualización**: FASE 13 completada - mejoras UI/UX
+**Último commit pendiente**: FASES 5-13 pendientes de commit
+**Próxima tarea**: FASE 14 - Testing y validaciones
 
 ### Decisiones de Diseño para FASES 10-12
 

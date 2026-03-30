@@ -1,4 +1,5 @@
 import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import {
   Copy,
@@ -40,9 +41,11 @@ import type { Participant, Room, RoomMovie, VoteType } from "@/types/domain";
 import type { TMDBMovie } from "@/types/tmdb";
 
 import {
+  AnimatedGridItem,
   CountdownTimer,
   MovieDetailsModal,
   MovieVoteCard,
+  MovieVoteCardSkeleton,
   ParticipantsModal,
   Toast,
   WinnerRevealModal,
@@ -66,6 +69,7 @@ export default function RoomScreen() {
   const [movies, setMovies] = useState<RoomMovie[]>([]);
   const [userVotes, setUserVotes] = useState<Map<number, VoteType>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [moviesLoading, setMoviesLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -200,10 +204,12 @@ export default function RoomScreen() {
       roomCode,
       (updatedMovies) => {
         setMovies(updatedMovies);
+        setMoviesLoading(false);
         setRefreshing(false);
       },
       (error) => {
         console.error("Error in movies subscription:", error);
+        setMoviesLoading(false);
       },
     );
 
@@ -321,18 +327,14 @@ export default function RoomScreen() {
   };
 
   const handleExitRoom = () => {
-    Alert.alert(
-      "Salir de la sala",
-      "¿Quieres volver al inicio?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Salir",
-          style: "destructive",
-          onPress: () => router.replace("/" as any),
-        },
-      ],
-    );
+    Alert.alert("Salir de la sala", "¿Quieres volver al inicio?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Salir",
+        style: "destructive",
+        onPress: () => router.replace("/" as any),
+      },
+    ]);
   };
 
   const handleVote = async (movieId: number, voteType: VoteType) => {
@@ -342,6 +344,7 @@ export default function RoomScreen() {
     }
 
     try {
+      await Haptics.selectionAsync();
       // Registrar el voto - las suscripciones en tiempo real actualizarán la UI
       await castVote(roomCode, movieId, userId, voteType);
     } catch (error) {
@@ -364,6 +367,7 @@ export default function RoomScreen() {
 
     try {
       setUpdatingReady(true);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await setParticipantReady(roomCode, userId, !currentParticipant.isReady);
     } catch (error) {
       console.error("Error toggling ready state:", error);
@@ -574,17 +578,62 @@ export default function RoomScreen() {
       )}
 
       {/* Lista de películas (2 columnas) */}
-      {visibleMovies.length === 0 ? (
+      {moviesLoading ? (
+        <View className="flex-1 px-6 pt-5">
+          <View className="flex-row gap-3 mb-4">
+            <View
+              style={{
+                width: (Dimensions.get("window").width - 24 * 2 - 12) / 2,
+              }}
+            >
+              <MovieVoteCardSkeleton />
+            </View>
+            <View
+              style={{
+                width: (Dimensions.get("window").width - 24 * 2 - 12) / 2,
+              }}
+            >
+              <MovieVoteCardSkeleton />
+            </View>
+          </View>
+          <View className="flex-row gap-3">
+            <View
+              style={{
+                width: (Dimensions.get("window").width - 24 * 2 - 12) / 2,
+              }}
+            >
+              <MovieVoteCardSkeleton />
+            </View>
+            <View
+              style={{
+                width: (Dimensions.get("window").width - 24 * 2 - 12) / 2,
+              }}
+            >
+              <MovieVoteCardSkeleton />
+            </View>
+          </View>
+        </View>
+      ) : visibleMovies.length === 0 ? (
         <View className="flex-1 items-center justify-center py-12 px-6">
           <View className="mb-4">
             <Film size={64} color="#9ca3af" strokeWidth={1.5} />
           </View>
           <Text className="text-white text-xl font-bold mb-2 text-center">
-            No hay películas todavía
+            {room.status === "voting"
+              ? "La sala está vacía"
+              : "No se votaron películas"}
           </Text>
           <Text className="text-gray-400 text-center mb-6">
-            Sé el primero en agregar una película a la sala
+            {room.status === "voting"
+              ? "Agrega la primera película para empezar la votación"
+              : "La votación terminó sin películas cargadas"}
           </Text>
+          <View className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 mb-6 w-full max-w-sm">
+            <Text className="text-gray-300 text-sm text-center">
+              Consejo: usa el botón compartir para invitar al grupo y sumar más
+              propuestas.
+            </Text>
+          </View>
           {room.status === "voting" && (
             <Link href={`/room/${roomCode}/search` as any} asChild>
               <Button>Agregar Película</Button>
@@ -606,8 +655,9 @@ export default function RoomScreen() {
             paddingHorizontal: 24,
           }}
           columnWrapperStyle={{ gap: 12, marginBottom: 16 }}
-          renderItem={({ item: movie }) => (
-            <View
+          renderItem={({ item: movie, index }) => (
+            <AnimatedGridItem
+              index={index}
               style={{
                 width: (Dimensions.get("window").width - 24 * 2 - 12) / 2,
               }}
@@ -624,7 +674,7 @@ export default function RoomScreen() {
                 }
                 onPress={() => handleShowDetails(movie)}
               />
-            </View>
+            </AnimatedGridItem>
           )}
         />
       )}
