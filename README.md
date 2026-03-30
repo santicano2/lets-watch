@@ -131,6 +131,7 @@ pnpm run web
 ## 📋 Plan de Desarrollo (Fases)
 
 ### ✅ FASE 0: Setup Inicial (COMPLETADA)
+
 - [x] Crear proyecto Expo con template default
 - [x] Instalar dependencias (NativeWind, Firebase, AsyncStorage, UUID)
 - [x] Configurar NativeWind (tailwind, metro, babel, global.css, types)
@@ -140,6 +141,7 @@ pnpm run web
 - [x] Crear README.md con plan completo
 
 ### ✅ FASE 1: Configuración de Firebase (COMPLETADA)
+
 - [x] Crear proyecto en Firebase Console
 - [x] Registrar app web y obtener configuración
 - [x] Configurar Firestore Database
@@ -155,10 +157,11 @@ pnpm run web
 - [x] Crear archivo `AGENTS.md` para continuidad de sesión
 
 **Estructura Firestore:**
+
 ```
 rooms/{roomCode}
   - id, code, name, hostUserId, createdAt, status, participants[]
-  
+
   movies/{movieId}
     - tmdbId, title, posterPath, backdropPath, releaseDate
     - addedBy, addedAt, upvotes, downvotes, netVotes
@@ -171,6 +174,7 @@ votes/{voteId}
 ```
 
 ### ✅ FASE 2: Integración TMDB API (COMPLETADA)
+
 - [x] Obtener API Key de TMDB
 - [x] Agregar API key a `.env.local`
 - [x] Crear cliente TMDB (`services/tmdb/client.ts`):
@@ -191,6 +195,7 @@ votes/{voteId}
   - [x] `getProfileUrl()` - URL de perfil de actor
 
 ### ✅ FASE 3: Componentes Base UI (COMPLETADA)
+
 - [x] `components/ui/Button.tsx` - Botón con variantes (primary, secondary, outline, ghost)
 - [x] `components/ui/Card.tsx` - Tarjeta con bordes/sombras (default, elevated)
 - [x] `components/ui/Input.tsx` - Input con label, error y helper text
@@ -201,6 +206,7 @@ votes/{voteId}
 - [x] `components/index.ts` - Barrel exports principales
 
 ### ✅ FASE 4: Pantallas Principales (COMPLETADA)
+
 - [x] `app/index.tsx` - Pantalla de bienvenida con CTA
 - [x] `app/create.tsx` - Crear sala con nombre del creador
 - [x] `app/join.tsx` - Unirse a sala con código manual (validación + uppercase)
@@ -213,6 +219,7 @@ votes/{voteId}
   - [x] Pull-to-refresh
 
 ### 🔍 FASE 5: Búsqueda y Selección de Películas (COMPLETADA)
+
 - [x] `app/room/[code]/search.tsx` - Pantalla de búsqueda
 - [x] Hook `useMovieSearch.ts` con debounce
 - [x] Agregar película a Firestore
@@ -220,6 +227,7 @@ votes/{voteId}
 - [x] Loading states y estados vacíos
 
 ### 🗳️ FASE 6: Sistema de Votación (COMPLETADA)
+
 - [x] Hook `useUser.ts` - Generar y persistir userId anónimo
 - [x] Servicio `votes.ts` - castVote con toggle/switch behavior
 - [x] Integrar votación en pantalla de sala
@@ -227,6 +235,7 @@ votes/{voteId}
 - [x] Visual feedback de voto actual del usuario
 
 ### 🎭 FASE 7: Detalles de Película (COMPLETADA)
+
 - [x] `MovieDetailsModal.tsx` - Modal con detalles completos
 - [x] Mostrar poster, título, año, duración, tagline
 - [x] Sinopsis completa
@@ -238,6 +247,7 @@ votes/{voteId}
 - [x] Puntuación de TMDB
 
 ### 🔗 FASE 8: Deep Linking Robusto (COMPLETADA)
+
 - [x] Scheme `letswatch://` configurado en app.json
 - [x] Manejar deep links entrantes en `_layout.tsx`
 - [x] Navegación automática a sala desde link (`letswatch://room/ABC123`)
@@ -250,10 +260,12 @@ votes/{voteId}
 - [x] Registro de participantes al crear/unirse a sala
 
 ### ~~🌙 FASE 9: Modo Oscuro~~ (CANCELADA)
+
 - La app usa dark mode fijo por diseño (fondo negro, textos claros)
 - No se implementará toggle de tema
 
 ### ⏱️ FASE 9: Temporizador y Cierre de Votación (COMPLETADA)
+
 - [x] Agregar campos `endsAt` (timestamp) y `duration` (minutos) a Room
 - [x] Selector de duración en `create.tsx` (15min, 30min, 1h, 2h)
 - [x] Mostrar countdown en la sala (tiempo restante)
@@ -261,6 +273,7 @@ votes/{voteId}
 - [x] Suscripción en tiempo real al estado de la sala
 
 ### ✋ FASE 10: Sistema "Estoy Listo" (COMPLETADA)
+
 - [x] Agregar campo `isReady` a Participant
 - [x] Botón "Estoy listo" en pantalla de sala
 - [x] Mostrar contador "X/Y listos"
@@ -268,19 +281,22 @@ votes/{voteId}
 - [x] Permitir quitar "listo" antes de que cierre
 
 ### 🏆 FASE 11: Pantalla de Ganador
+
 - [x] Calcular ganador(es) al cerrar votación
 - [x] Si hay empate: seleccionar ganadora al azar automáticamente
-- [ ] Animación de selección aleatoria
-- [ ] Pantalla de resultado final
-- [ ] Guardar `selectedMovieId` en Room
+- [x] Animación de selección aleatoria
+- [x] Pantalla/modal de resultado final
+- [x] Guardar `selectedMovieId` en Room
 
 ### 🔄 FASE 12: Rejoin (Volver a Sala)
+
 - [x] Guardar última sala en AsyncStorage (`lastRoomCode`)
 - [x] Botón "Volver a ultima sala" en pantalla home
 - [x] Limpiar si la sala ya no existe o expiró
 - [ ] Validar que el usuario era participante
 
 ### 🎨 FASE 13: Mejoras UI/UX
+
 - [ ] Skeleton loaders para películas
 - [ ] Animaciones con Reanimated (votos, countdown, selección ganador)
 - [ ] Haptic feedback en votaciones
@@ -288,6 +304,7 @@ votes/{voteId}
 - [ ] Toast notifications
 
 ### 🧪 FASE 14: Testing y Validaciones
+
 - [ ] Validaciones de negocio:
   - [ ] Máximo de películas por sala (10)
   - [ ] No agregar duplicadas
@@ -298,6 +315,7 @@ votes/{voteId}
 - [ ] Manejo de offline
 
 ### 📦 FASE 15: Build y Deploy
+
 - [ ] Configurar EAS Build
 - [ ] Crear builds de desarrollo
 - [ ] Configurar signing para iOS/Android
@@ -306,6 +324,7 @@ votes/{voteId}
 - [ ] Preparar para tiendas
 
 ### 🔔 FASE 16: Notificaciones Push (Opcional)
+
 - [ ] Configurar Firebase Cloud Messaging
 - [ ] Pedir permisos de notificaciones
 - [ ] Guardar tokens FCM en Firestore
@@ -346,4 +365,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 29, 2026 - Desempate simplificado (solo aleatorio)
+**Última actualización**: Marzo 29, 2026 - FASE 11 completada (animación + modal ganadora)

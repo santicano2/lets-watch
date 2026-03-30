@@ -33,14 +33,8 @@ import {
   setParticipantReady,
   subscribeToParticipants,
 } from "@/services/firebase/participants";
-import {
-  closeVoting,
-  subscribeToRoom,
-} from "@/services/firebase/rooms";
-import {
-  castVote,
-  subscribeToUserVotes,
-} from "@/services/firebase/votes";
+import { closeVoting, subscribeToRoom } from "@/services/firebase/rooms";
+import { castVote, subscribeToUserVotes } from "@/services/firebase/votes";
 import type { Participant, Room, RoomMovie, VoteType } from "@/types/domain";
 import type { TMDBMovie } from "@/types/tmdb";
 
@@ -50,6 +44,7 @@ import {
   MovieVoteCard,
   ParticipantsModal,
   Toast,
+  WinnerRevealModal,
 } from "@/components";
 import { Button } from "@/components/ui";
 import { saveLastRoomCode } from "@/utils/lastRoom";
@@ -73,6 +68,8 @@ export default function RoomScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [winnerCandidates, setWinnerCandidates] = useState<RoomMovie[]>([]);
 
   // Estado para el modal de detalles
   const [selectedMovie, setSelectedMovie] = useState<TMDBMovie | null>(null);
@@ -87,6 +84,7 @@ export default function RoomScreen() {
   const hasLoadedParticipantsRef = useRef(false);
   const previousParticipantsRef = useRef<Participant[]>([]);
   const hasClosedByReadyRef = useRef(false);
+  const hasShownWinnerModalRef = useRef(false);
 
   const [updatingReady, setUpdatingReady] = useState(false);
 
@@ -162,10 +160,36 @@ export default function RoomScreen() {
     const randomIndex = Math.floor(Math.random() * tiedMovies.length);
     const selectedMovieId = tiedMovies[randomIndex].id;
 
+    setWinnerCandidates(tiedMovies);
+
     closeVoting(roomCode, selectedMovieId).catch((error) => {
       console.error("Error selecting random winner:", error);
     });
   }, [roomCode, room, movies]);
+
+  useEffect(() => {
+    if (!room) return;
+
+    if (room.status === "voting") {
+      hasShownWinnerModalRef.current = false;
+      setShowWinnerModal(false);
+      return;
+    }
+
+    if (
+      room.status === "closed" &&
+      room.selectedMovieId &&
+      !hasShownWinnerModalRef.current
+    ) {
+      if (winnerCandidates.length === 0 && movies.length > 0) {
+        const maxScore = Math.max(...movies.map((movie) => movie.score));
+        setWinnerCandidates(movies.filter((movie) => movie.score === maxScore));
+      }
+
+      hasShownWinnerModalRef.current = true;
+      setShowWinnerModal(true);
+    }
+  }, [room, movies, winnerCandidates.length]);
 
   // Suscripción en tiempo real a las películas
   useEffect(() => {
@@ -503,7 +527,6 @@ export default function RoomScreen() {
             </Button>
           </View>
         )}
-
       </View>
 
       {/* Winner Badge */}
@@ -584,14 +607,14 @@ export default function RoomScreen() {
       {/* FAB - Agregar película */}
       {room.status === "voting" && visibleMovies.length > 0 && (
         <Link href={`/room/${roomCode}/search` as any} asChild>
-            <TouchableOpacity
-              className="absolute bottom-6 right-6 bg-green-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
-              activeOpacity={0.8}
-            >
-              <Plus size={32} color="white" strokeWidth={2} />
-            </TouchableOpacity>
-          </Link>
-        )}
+          <TouchableOpacity
+            className="absolute bottom-6 right-6 bg-green-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
+            activeOpacity={0.8}
+          >
+            <Plus size={32} color="white" strokeWidth={2} />
+          </TouchableOpacity>
+        </Link>
+      )}
 
       <Toast
         message={toastMessage}
@@ -614,6 +637,13 @@ export default function RoomScreen() {
         onClose={() => setParticipantsModalVisible(false)}
         participants={participants}
         currentUserId={userId}
+      />
+
+      <WinnerRevealModal
+        visible={showWinnerModal}
+        winner={winnerMovie || null}
+        candidates={winnerCandidates}
+        onClose={() => setShowWinnerModal(false)}
       />
     </View>
   );

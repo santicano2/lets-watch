@@ -105,7 +105,7 @@ Ver `README.md` para el plan completo. Progreso actual:
 - ✅ **FASE 8**: Deep linking + Modal de participantes
 - ✅ **FASE 9**: Temporizador y cierre de votación
 - ✅ **FASE 10**: Sistema "Estoy listo"
-- ⏳ **FASE 11**: Pantalla de ganador (empates + selección aleatoria)
+- ✅ **FASE 11**: Pantalla de ganador (empates + selección aleatoria)
 - ⏳ **FASE 12**: Rejoin (volver a sala después de cerrar app)
 - ⏳ **FASE 13**: Mejoras UI/UX (animaciones, haptics)
 - ⏳ **FASE 14**: Testing y validaciones
@@ -210,22 +210,25 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 11 en progreso - desempate aleatorio
-**Último commit pendiente**: FASES 5-10 + FASE 11 parcial + mejoras UX pendientes de commit
-**Próxima tarea**: Completar FASE 11 (animación y pantalla final de ganador)
+**Última actualización**: FASE 11 completada - animación + modal ganadora
+**Último commit pendiente**: FASES 5-11 + mejoras UX pendientes de commit
+**Próxima tarea**: FASE 12 - Rejoin (validar pertenencia a sala)
 
 ### Decisiones de Diseño para FASES 10-12
 
 #### Cierre de Votación
+
 - **Temporizador** con opciones: 15 min, 30 min, 1 hora, 2 horas
 - **O** cuando todos presionan "Estoy listo" (lo que pase primero)
 - Votar es **opcional** - el botón "Estoy listo" indica que terminaron
 
 #### Empates
+
 - Si hay empate, se muestran las películas empatadas
 - Botón "Elegir al azar" para seleccionar ganador entre empates
 
 #### Rejoin
+
 - Guardar última sala en AsyncStorage
 - Mostrar botón "Volver a sala XXXXXX" en home
 
