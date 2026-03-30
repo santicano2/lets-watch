@@ -293,7 +293,7 @@ votes/{voteId}
 - [x] Guardar última sala en AsyncStorage (`lastRoomCode`)
 - [x] Botón "Volver a ultima sala" en pantalla home
 - [x] Limpiar si la sala ya no existe o expiró
-- [ ] Validar que el usuario era participante
+- [x] Validar que el usuario era participante
 
 ### 🎨 FASE 13: Mejoras UI/UX
 
@@ -365,4 +365,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 29, 2026 - FASE 11 completada (animación + modal ganadora)
+**Última actualización**: Marzo 29, 2026 - FASE 12 completada (rejoin validado)

@@ -4,7 +4,10 @@ import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 import { Button } from "@/components/ui";
+import { useUser } from "@/hooks/useUser";
+import { getParticipant } from "@/services/firebase/participants";
 import { getRoomByCode } from "@/services/firebase/rooms";
+import type { RoomStatus } from "@/types/domain";
 import { clearLastRoomCode, getLastRoomCode } from "@/utils/lastRoom";
 
 /**
@@ -13,16 +16,21 @@ import { clearLastRoomCode, getLastRoomCode } from "@/utils/lastRoom";
  */
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { userId, loading: userLoading } = useUser();
   const [lastRoomCode, setLastRoomCode] = useState<string | null>(null);
+  const [lastRoomStatus, setLastRoomStatus] = useState<RoomStatus | null>(null);
   const [checkingLastRoom, setCheckingLastRoom] = useState(true);
 
   useEffect(() => {
+    if (!userId || userLoading) return;
+
     const loadLastRoom = async () => {
       try {
         const storedCode = await getLastRoomCode();
 
         if (!storedCode) {
           setLastRoomCode(null);
+          setLastRoomStatus(null);
           return;
         }
 
@@ -30,20 +38,32 @@ export default function WelcomeScreen() {
         if (!room) {
           await clearLastRoomCode();
           setLastRoomCode(null);
+          setLastRoomStatus(null);
+          return;
+        }
+
+        // Validar que este usuario pertenece a la sala
+        const participant = await getParticipant(storedCode, userId);
+        if (!participant) {
+          await clearLastRoomCode();
+          setLastRoomCode(null);
+          setLastRoomStatus(null);
           return;
         }
 
         setLastRoomCode(storedCode);
+        setLastRoomStatus(room.status);
       } catch (error) {
         console.error("Error loading last room:", error);
         setLastRoomCode(null);
+        setLastRoomStatus(null);
       } finally {
         setCheckingLastRoom(false);
       }
     };
 
     loadLastRoom();
-  }, []);
+  }, [userId, userLoading]);
 
   const handleRejoinLastRoom = () => {
     if (!lastRoomCode) return;
@@ -89,11 +109,13 @@ export default function WelcomeScreen() {
           {!checkingLastRoom && lastRoomCode && (
             <Button
               size="lg"
-              variant="secondary"
+              variant={lastRoomStatus === "closed" ? "outline" : "secondary"}
               className="w-full"
               onPress={handleRejoinLastRoom}
             >
-              Volver a ultima sala
+              {lastRoomStatus === "closed"
+                ? "Ver resultado de ultima sala"
+                : "Volver a ultima sala"}
             </Button>
           )}
         </View>
