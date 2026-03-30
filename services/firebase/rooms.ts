@@ -92,6 +92,8 @@ export async function getRoomByCode(code: string): Promise<Room | null> {
     duration: data.duration || 30,
     participantCount: data.participantCount,
     selectedMovieId: data.selectedMovieId,
+    isTieBreak: data.isTieBreak || false,
+    tieBreakMovieIds: data.tieBreakMovieIds || [],
   };
 }
 
@@ -124,6 +126,8 @@ export function subscribeToRoom(
         duration: data.duration || 30,
         participantCount: data.participantCount,
         selectedMovieId: data.selectedMovieId,
+        isTieBreak: data.isTieBreak || false,
+        tieBreakMovieIds: data.tieBreakMovieIds || [],
       };
       onRoomChange(room);
     },
@@ -155,7 +159,43 @@ export async function closeVoting(
   const roomRef = doc(db, ROOMS_COLLECTION, code);
   await updateDoc(roomRef, {
     status: "closed",
+    isTieBreak: false,
+    tieBreakMovieIds: [],
     ...(selectedMovieId && { selectedMovieId }),
+  });
+}
+
+export async function startTieBreak(
+  code: string,
+  movieIds: number[],
+): Promise<void> {
+  const roomRef = doc(db, ROOMS_COLLECTION, code);
+  await updateDoc(roomRef, {
+    isTieBreak: true,
+    tieBreakMovieIds: movieIds,
+  });
+}
+
+export async function resolveTieBreakRandom(
+  code: string,
+  movieIds: number[],
+): Promise<number> {
+  const winnerIndex = Math.floor(Math.random() * movieIds.length);
+  const selectedMovieId = movieIds[winnerIndex];
+  await closeVoting(code, selectedMovieId);
+  return selectedMovieId;
+}
+
+export async function beginTieBreakVoting(
+  code: string,
+  durationMinutes: number = 10,
+): Promise<void> {
+  const roomRef = doc(db, ROOMS_COLLECTION, code);
+  const endsAt = new Date(Date.now() + durationMinutes * 60 * 1000);
+  await updateDoc(roomRef, {
+    status: "voting",
+    endsAt: endsAt.toISOString(),
+    isTieBreak: true,
   });
 }
 

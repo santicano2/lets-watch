@@ -210,9 +210,9 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 10 completada + mejoras UX de sala
-**Último commit pendiente**: FASES 5-10 + mejoras UX pendientes de commit
-**Próxima tarea**: FASE 11 - Pantalla de ganador (empates + aleatorio)
+**Última actualización**: FASE 11 en progreso - desempate aleatorio
+**Último commit pendiente**: FASES 5-10 + FASE 11 parcial + mejoras UX pendientes de commit
+**Próxima tarea**: Completar FASE 11 (animación y pantalla final de ganador)
 
 ### Decisiones de Diseño para FASES 10-12
 
@@ -243,6 +243,7 @@ pnpm build:ios
 - `app/join.tsx` - Guarda última sala al unirse
 - `app/index.tsx` - Botón "Volver a sala" si existe última sala válida
 - `app/room/[code]/index.tsx` - Toast de nuevos participantes + grid 2 columnas + botón "Estoy listo"
+- `services/firebase/rooms.ts` - Soporte para desempate (`isTieBreak`, `tieBreakMovieIds`)
 
 ---
 

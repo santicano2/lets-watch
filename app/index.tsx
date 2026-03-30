@@ -74,17 +74,6 @@ export default function WelcomeScreen() {
 
         {/* Botones principales */}
         <View className="w-full gap-4 px-4 max-w-md">
-          {!checkingLastRoom && lastRoomCode && (
-            <Button
-              size="lg"
-              variant="secondary"
-              className="w-full"
-              onPress={handleRejoinLastRoom}
-            >
-              Volver a ultima sala
-            </Button>
-          )}
-
           <Link href={"/create" as any} asChild>
             <Button size="lg" className="w-full">
               Crear Sala
@@ -96,6 +85,17 @@ export default function WelcomeScreen() {
               Unirse con Código
             </Button>
           </Link>
+
+          {!checkingLastRoom && lastRoomCode && (
+            <Button
+              size="lg"
+              variant="secondary"
+              className="w-full"
+              onPress={handleRejoinLastRoom}
+            >
+              Volver a ultima sala
+            </Button>
+          )}
         </View>
       </View>
 

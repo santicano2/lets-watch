@@ -33,8 +33,14 @@ import {
   setParticipantReady,
   subscribeToParticipants,
 } from "@/services/firebase/participants";
-import { closeVoting, subscribeToRoom } from "@/services/firebase/rooms";
-import { castVote, subscribeToUserVotes } from "@/services/firebase/votes";
+import {
+  closeVoting,
+  subscribeToRoom,
+} from "@/services/firebase/rooms";
+import {
+  castVote,
+  subscribeToUserVotes,
+} from "@/services/firebase/votes";
 import type { Participant, Room, RoomMovie, VoteType } from "@/types/domain";
 import type { TMDBMovie } from "@/types/tmdb";
 
@@ -146,6 +152,20 @@ export default function RoomScreen() {
       hasClosedByReadyRef.current = false;
     });
   }, [roomCode, room, participants]);
+
+  useEffect(() => {
+    if (!roomCode || !room || room.status !== "closed") return;
+    if (room.selectedMovieId || movies.length === 0) return;
+
+    const maxScore = Math.max(...movies.map((movie) => movie.score));
+    const tiedMovies = movies.filter((movie) => movie.score === maxScore);
+    const randomIndex = Math.floor(Math.random() * tiedMovies.length);
+    const selectedMovieId = tiedMovies[randomIndex].id;
+
+    closeVoting(roomCode, selectedMovieId).catch((error) => {
+      console.error("Error selecting random winner:", error);
+    });
+  }, [roomCode, room, movies]);
 
   // Suscripción en tiempo real a las películas
   useEffect(() => {
@@ -394,6 +414,8 @@ export default function RoomScreen() {
         ? movies[0]
         : null;
 
+  const visibleMovies = movies;
+
   const readyCount = participants.filter(
     (participant) => participant.isReady,
   ).length;
@@ -481,6 +503,7 @@ export default function RoomScreen() {
             </Button>
           </View>
         )}
+
       </View>
 
       {/* Winner Badge */}
@@ -503,7 +526,7 @@ export default function RoomScreen() {
       )}
 
       {/* Lista de películas (2 columnas) */}
-      {movies.length === 0 ? (
+      {visibleMovies.length === 0 ? (
         <View className="flex-1 items-center justify-center py-12 px-6">
           <View className="mb-4">
             <Film size={64} color="#9ca3af" strokeWidth={1.5} />
@@ -523,7 +546,7 @@ export default function RoomScreen() {
       ) : (
         <FlatList
           className="flex-1"
-          data={movies}
+          data={visibleMovies}
           numColumns={2}
           keyExtractor={(item) => item.id.toString()}
           refreshControl={
@@ -559,16 +582,16 @@ export default function RoomScreen() {
       )}
 
       {/* FAB - Agregar película */}
-      {room.status === "voting" && movies.length > 0 && (
+      {room.status === "voting" && visibleMovies.length > 0 && (
         <Link href={`/room/${roomCode}/search` as any} asChild>
-          <TouchableOpacity
-            className="absolute bottom-6 right-6 bg-green-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
-            activeOpacity={0.8}
-          >
-            <Plus size={32} color="white" strokeWidth={2} />
-          </TouchableOpacity>
-        </Link>
-      )}
+            <TouchableOpacity
+              className="absolute bottom-6 right-6 bg-green-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
+              activeOpacity={0.8}
+            >
+              <Plus size={32} color="white" strokeWidth={2} />
+            </TouchableOpacity>
+          </Link>
+        )}
 
       <Toast
         message={toastMessage}

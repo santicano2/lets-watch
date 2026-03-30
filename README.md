@@ -268,8 +268,8 @@ votes/{voteId}
 - [x] Permitir quitar "listo" antes de que cierre
 
 ### 🏆 FASE 11: Pantalla de Ganador
-- [ ] Calcular ganador(es) al cerrar votación
-- [ ] Si hay empate: mostrar películas empatadas + botón "Elegir al azar"
+- [x] Calcular ganador(es) al cerrar votación
+- [x] Si hay empate: seleccionar ganadora al azar automáticamente
 - [ ] Animación de selección aleatoria
 - [ ] Pantalla de resultado final
 - [ ] Guardar `selectedMovieId` en Room
@@ -346,4 +346,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 29, 2026 - FASE 10 completada + mejoras UX de sala
+**Última actualización**: Marzo 29, 2026 - Desempate simplificado (solo aleatorio)

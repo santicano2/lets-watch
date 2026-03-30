@@ -18,6 +18,8 @@ export interface Room {
   duration: RoomDuration; // Duración en minutos
   participantCount: number;
   selectedMovieId?: number; // TMDB ID de la película ganadora
+  isTieBreak?: boolean;
+  tieBreakMovieIds?: number[];
 }
 
 export interface Participant {
