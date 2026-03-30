@@ -56,7 +56,7 @@ export async function createRoom({
     createdAt: now,
     endsAt,
     duration,
-    participantCount: 1,
+    participantCount: 0,
   };
 
   // Guardar en Firestore (usar código como document ID)

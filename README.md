@@ -260,12 +260,12 @@ votes/{voteId}
 - [x] Auto-cerrar votación cuando el tiempo termina
 - [x] Suscripción en tiempo real al estado de la sala
 
-### ✋ FASE 10: Sistema "Estoy Listo"
-- [ ] Agregar campo `isReady` a Participant
-- [ ] Botón "Estoy listo" en pantalla de sala
-- [ ] Mostrar contador "X/Y listos"
-- [ ] Detectar cuando todos están listos → cerrar votación
-- [ ] Permitir quitar "listo" antes de que cierre
+### ✋ FASE 10: Sistema "Estoy Listo" (COMPLETADA)
+- [x] Agregar campo `isReady` a Participant
+- [x] Botón "Estoy listo" en pantalla de sala
+- [x] Mostrar contador "X/Y listos"
+- [x] Detectar cuando todos están listos → cerrar votación
+- [x] Permitir quitar "listo" antes de que cierre
 
 ### 🏆 FASE 11: Pantalla de Ganador
 - [ ] Calcular ganador(es) al cerrar votación
@@ -275,9 +275,9 @@ votes/{voteId}
 - [ ] Guardar `selectedMovieId` en Room
 
 ### 🔄 FASE 12: Rejoin (Volver a Sala)
-- [ ] Guardar última sala en AsyncStorage (`lastRoomCode`)
-- [ ] Botón "Volver a sala XXXXXX" en pantalla home
-- [ ] Limpiar si la sala ya no existe o expiró
+- [x] Guardar última sala en AsyncStorage (`lastRoomCode`)
+- [x] Botón "Volver a ultima sala" en pantalla home
+- [x] Limpiar si la sala ya no existe o expiró
 - [ ] Validar que el usuario era participante
 
 ### 🎨 FASE 13: Mejoras UI/UX
@@ -346,4 +346,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 29, 2026 - UX de sala mejorada (toast, rejoin, grid 2 columnas)
+**Última actualización**: Marzo 29, 2026 - FASE 10 completada + mejoras UX de sala

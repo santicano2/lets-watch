@@ -104,7 +104,7 @@ Ver `README.md` para el plan completo. Progreso actual:
 - ✅ **FASE 7**: Detalles de película (cast, providers, país automático)
 - ✅ **FASE 8**: Deep linking + Modal de participantes
 - ✅ **FASE 9**: Temporizador y cierre de votación
-- ⏳ **FASE 10**: Sistema "Estoy listo"
+- ✅ **FASE 10**: Sistema "Estoy listo"
 - ⏳ **FASE 11**: Pantalla de ganador (empates + selección aleatoria)
 - ⏳ **FASE 12**: Rejoin (volver a sala después de cerrar app)
 - ⏳ **FASE 13**: Mejoras UI/UX (animaciones, haptics)
@@ -210,9 +210,9 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: UX de sala mejorada (toast, rejoin, grid)
-**Último commit pendiente**: FASES 5-9 + mejoras UX pendientes de commit
-**Próxima tarea**: FASE 10 - Sistema "Estoy listo"
+**Última actualización**: FASE 10 completada + mejoras UX de sala
+**Último commit pendiente**: FASES 5-10 + mejoras UX pendientes de commit
+**Próxima tarea**: FASE 11 - Pantalla de ganador (empates + aleatorio)
 
 ### Decisiones de Diseño para FASES 10-12
 
@@ -237,11 +237,12 @@ pnpm build:ios
 - `hooks/useCountdown.ts` - NUEVO: Hook para countdown con callback onExpire
 - `components/CountdownTimer.tsx` - NUEVO: Componente visual del countdown
 - `components/Toast.tsx` - NUEVO: Toast temporal para eventos en sala
+- `components/ParticipantsModal.tsx` - Estado de participante: "Listo" / "Votando"
 - `utils/lastRoom.ts` - NUEVO: Persistencia de última sala para rejoin
 - `app/create.tsx` - Selector de duración (15min, 30min, 1h, 2h)
 - `app/join.tsx` - Guarda última sala al unirse
 - `app/index.tsx` - Botón "Volver a sala" si existe última sala válida
-- `app/room/[code]/index.tsx` - Toast de nuevos participantes + grid 2 columnas
+- `app/room/[code]/index.tsx` - Toast de nuevos participantes + grid 2 columnas + botón "Estoy listo"
 
 ---
 

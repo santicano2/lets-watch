@@ -20,6 +20,10 @@ function getParticipantsCollection(roomCode: string) {
   return collection(db, "rooms", roomCode, "participants");
 }
 
+function getRoomRef(roomCode: string) {
+  return doc(db, "rooms", roomCode);
+}
+
 /**
  * Agrega un participante a una sala
  * El userId se usa como document ID para evitar duplicados
@@ -59,6 +63,15 @@ export async function addParticipant(
     ...participant,
     joinedAt: new Date().toISOString(),
   });
+
+  const roomRef = getRoomRef(roomCode);
+  const roomSnap = await getDoc(roomRef);
+  if (roomSnap.exists()) {
+    const currentCount = roomSnap.data().participantCount || 0;
+    await updateDoc(roomRef, {
+      participantCount: currentCount + 1,
+    });
+  }
 
   return participant;
 }

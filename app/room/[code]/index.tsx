@@ -29,12 +29,11 @@ import {
   removeMovieFromRoom,
   subscribeToMovies,
 } from "@/services/firebase/movies";
-import { subscribeToParticipants } from "@/services/firebase/participants";
 import {
-  closeVoting,
-  incrementParticipantCount,
-  subscribeToRoom,
-} from "@/services/firebase/rooms";
+  setParticipantReady,
+  subscribeToParticipants,
+} from "@/services/firebase/participants";
+import { closeVoting, subscribeToRoom } from "@/services/firebase/rooms";
 import { castVote, subscribeToUserVotes } from "@/services/firebase/votes";
 import type { Participant, Room, RoomMovie, VoteType } from "@/types/domain";
 import type { TMDBMovie } from "@/types/tmdb";
@@ -57,7 +56,6 @@ export default function RoomScreen() {
   const params = useLocalSearchParams<{ code: string; isCreator?: string }>();
   const router = useRouter();
   const roomCode = params.code?.toUpperCase();
-  const isCreator = params.isCreator === "true";
 
   // Hook para obtener el ID del usuario
   const { userId } = useUser();
@@ -80,9 +78,11 @@ export default function RoomScreen() {
     useState(false);
 
   // Refs para trackear estado
-  const hasIncrementedRef = useRef(false);
   const hasLoadedParticipantsRef = useRef(false);
   const previousParticipantsRef = useRef<Participant[]>([]);
+  const hasClosedByReadyRef = useRef(false);
+
+  const [updatingReady, setUpdatingReady] = useState(false);
 
   // Callback para cuando el tiempo termina
   const handleTimeExpired = useCallback(async () => {
@@ -124,14 +124,6 @@ export default function RoomScreen() {
     return () => unsubscribe();
   }, [roomCode, router]);
 
-  // Incrementar contador de participantes (solo una vez)
-  useEffect(() => {
-    if (!roomCode || !room || isCreator || hasIncrementedRef.current) return;
-
-    incrementParticipantCount(roomCode);
-    hasIncrementedRef.current = true;
-  }, [roomCode, room, isCreator]);
-
   // Guardar última sala para rejoin rápido
   useEffect(() => {
     if (!roomCode) return;
@@ -139,6 +131,21 @@ export default function RoomScreen() {
       console.error("Error saving last room code:", error);
     });
   }, [roomCode, userId]);
+
+  // Cerrar votación cuando todos están listos
+  useEffect(() => {
+    if (!roomCode || !room || room.status !== "voting") return;
+    if (participants.length === 0) return;
+
+    const allReady = participants.every((participant) => participant.isReady);
+    if (!allReady || hasClosedByReadyRef.current) return;
+
+    hasClosedByReadyRef.current = true;
+    closeVoting(roomCode).catch((error) => {
+      console.error("Error closing voting by ready state:", error);
+      hasClosedByReadyRef.current = false;
+    });
+  }, [roomCode, room, participants]);
 
   // Suscripción en tiempo real a las películas
   useEffect(() => {
@@ -283,6 +290,29 @@ export default function RoomScreen() {
     }
   };
 
+  const handleToggleReady = async () => {
+    if (!roomCode || !userId || !room || room.status !== "voting") return;
+
+    const currentParticipant = participants.find(
+      (participant) => participant.userId === userId,
+    );
+
+    if (!currentParticipant) {
+      Alert.alert("Error", "No se encontró tu participante en la sala");
+      return;
+    }
+
+    try {
+      setUpdatingReady(true);
+      await setParticipantReady(roomCode, userId, !currentParticipant.isReady);
+    } catch (error) {
+      console.error("Error toggling ready state:", error);
+      Alert.alert("Error", "No se pudo actualizar tu estado");
+    } finally {
+      setUpdatingReady(false);
+    }
+  };
+
   const handleDeleteMovie = (movieId: number, movieTitle: string) => {
     Alert.alert(
       "Eliminar película",
@@ -364,6 +394,14 @@ export default function RoomScreen() {
         ? movies[0]
         : null;
 
+  const readyCount = participants.filter(
+    (participant) => participant.isReady,
+  ).length;
+  const currentUserParticipant = participants.find(
+    (participant) => participant.userId === userId,
+  );
+  const isCurrentUserReady = currentUserParticipant?.isReady ?? false;
+
   return (
     <View className="flex-1 bg-black">
       {/* Header */}
@@ -423,6 +461,24 @@ export default function RoomScreen() {
           /* Countdown timer */
           <View className="mt-2">
             <CountdownTimer endsAt={room.endsAt} onExpire={handleTimeExpired} />
+          </View>
+        )}
+
+        {room.status === "voting" && (
+          <View className="mt-3 flex-row items-center gap-2">
+            <View className="flex-1 bg-gray-800 rounded-lg px-3 py-2">
+              <Text className="text-gray-300 text-sm">
+                {readyCount}/{participants.length} listos
+              </Text>
+            </View>
+            <Button
+              size="sm"
+              variant={isCurrentUserReady ? "outline" : "primary"}
+              onPress={handleToggleReady}
+              disabled={updatingReady}
+            >
+              {isCurrentUserReady ? "Quitar listo" : "Estoy listo"}
+            </Button>
           </View>
         )}
       </View>

@@ -48,9 +48,16 @@ export function ParticipantsModal({
               )}
             </Text>
           </View>
-          {item.isCreator && (
-            <Text className="text-green-500 text-xs">Creador de la sala</Text>
-          )}
+          <View className="flex-row items-center gap-2 mt-1">
+            {item.isCreator && (
+              <Text className="text-green-500 text-xs">Creador</Text>
+            )}
+            <Text
+              className={`text-xs ${item.isReady ? "text-blue-400" : "text-gray-500"}`}
+            >
+              {item.isReady ? "Listo" : "Votando"}
+            </Text>
+          </View>
         </View>
       </View>
     );
