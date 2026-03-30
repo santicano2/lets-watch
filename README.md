@@ -128,6 +128,22 @@ pnpm run ios
 pnpm run web
 ```
 
+### 4. Build para tiendas (EAS)
+
+```bash
+# Login en Expo
+pnpm exec eas login
+
+# Configurar EAS por primera vez
+pnpm run eas:configure
+
+# Build Android production (.aab)
+pnpm run build:android
+
+# Build iOS production
+pnpm run build:ios
+```
+
 ## 📋 Plan de Desarrollo (Fases)
 
 ### ✅ FASE 0: Setup Inicial (COMPLETADA)
@@ -316,7 +332,7 @@ votes/{voteId}
 
 ### 📦 FASE 15: Build y Deploy
 
-- [ ] Configurar EAS Build
+- [x] Configurar EAS Build
 - [ ] Crear builds de desarrollo
 - [ ] Configurar signing para iOS/Android
 - [ ] Testear en dispositivos físicos
@@ -365,4 +381,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 29, 2026 - FASE 14 completada (validaciones + resiliencia)
+**Última actualización**: Marzo 29, 2026 - FASE 15 iniciada (EAS configurado)

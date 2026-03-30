@@ -174,6 +174,32 @@ pnpm build:ios
 
 ---
 
+## Guia Oficial Expo Build (Fuente de verdad)
+
+**IMPORTANTE**: Para builds y deploy, seguir exclusivamente la documentacion oficial de Expo:
+
+- Introduccion EAS Build: https://docs.expo.dev/build/introduction/
+- Create your first build: https://docs.expo.dev/build/setup/
+- Troubleshooting: https://docs.expo.dev/build-reference/troubleshooting/
+
+### Flujo oficial obligatorio (resumen)
+
+1. `eas login`
+2. `eas build:configure`
+3. `eas build --platform android` o `eas build --platform ios`
+4. Revisar logs en dashboard EAS si falla
+5. `eas submit` para enviar a stores
+
+### Reglas de ejecucion
+
+- No inventar pasos fuera de docs oficiales para build/deploy
+- Ante error de build, primero revisar el primer phase que falla en logs
+- Validar bundling local cuando aplique (`npx expo export`)
+- Verificar que variables de entorno y archivos no ignorados por `.gitignore` esten correctos
+- Si hay diferencias local vs EAS, alinear versiones de herramientas y entorno
+
+---
+
 ## Próximos Pasos Inmediatos
 
 1. ✅ Completar FASE 1 (crear archivos restantes)
@@ -210,9 +236,9 @@ pnpm build:ios
 
 ## Estado del Proyecto
 
-**Última actualización**: FASE 14 completada - validaciones y resiliencia
-**Último commit pendiente**: FASES 5-14 pendientes de commit
-**Próxima tarea**: FASE 15 - Build y deploy
+**Última actualización**: FASE 15 iniciada - EAS configurado
+**Último commit pendiente**: FASES 5-14 + FASE 15 parcial pendientes de commit
+**Próxima tarea**: FASE 15 - generar builds y configurar signing
 
 ### Decisiones de Diseño para FASES 10-12
 
@@ -247,6 +273,9 @@ pnpm build:ios
 - `app/index.tsx` - Botón "Volver a sala" si existe última sala válida
 - `app/room/[code]/index.tsx` - Toast de nuevos participantes + grid 2 columnas + botón "Estoy listo"
 - `services/firebase/rooms.ts` - Soporte para desempate (`isTieBreak`, `tieBreakMovieIds`)
+- `eas.json` - NUEVO: perfiles de build (`development`, `preview`, `production`)
+- `app.json` - runtimeVersion + versionCode/buildNumber para stores
+- `package.json` - scripts EAS (`build:android`, `build:ios`, `submit:*`)
 
 ---
 
