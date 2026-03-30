@@ -9,6 +9,8 @@ import * as SystemUI from "expo-system-ui";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, LogBox, Platform, Text, View } from "react-native";
 
+import { AppErrorBoundary, OfflineBanner } from "@/components";
+import { useConnectivity } from "@/hooks/useConnectivity";
 import "react-native-reanimated";
 import "../global.css";
 
@@ -18,6 +20,7 @@ LogBox.ignoreLogs(["[Reanimated]"]);
 export default function RootLayout() {
   const router = useRouter();
   const [isProcessingLink, setIsProcessingLink] = useState(false);
+  const { isConnected, checking } = useConnectivity();
 
   // Configurar UI del sistema (status bar, navigation bar)
   useEffect(() => {
@@ -30,7 +33,7 @@ export default function RootLayout() {
       NavigationBar.setVisibilityAsync("hidden");
       NavigationBar.setBehaviorAsync("overlay-swipe");
       NavigationBar.setBackgroundColorAsync("#000000");
-      
+
       // Configurar color de fondo del sistema
       SystemUI.setBackgroundColorAsync("#000000");
     }
@@ -86,12 +89,17 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="create" />
-      <Stack.Screen name="join" />
-      <Stack.Screen name="room/[code]/index" />
-      <Stack.Screen name="room/[code]/search" />
-    </Stack>
+    <AppErrorBoundary>
+      <View className="flex-1 bg-black">
+        <OfflineBanner visible={!checking && !isConnected} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="create" />
+          <Stack.Screen name="join" />
+          <Stack.Screen name="room/[code]/index" />
+          <Stack.Screen name="room/[code]/search" />
+        </Stack>
+      </View>
+    </AppErrorBoundary>
   );
 }

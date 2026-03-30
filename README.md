@@ -305,14 +305,14 @@ votes/{voteId}
 
 ### 🧪 FASE 14: Testing y Validaciones
 
-- [ ] Validaciones de negocio:
-  - [ ] Máximo de películas por sala (10)
-  - [ ] No agregar duplicadas
-  - [ ] No votar en salas cerradas
-- [ ] Error boundaries en React
-- [ ] Retry logic para TMDB
-- [ ] Mensajes de error amigables
-- [ ] Manejo de offline
+- [x] Validaciones de negocio:
+  - [x] Máximo de películas por sala (10)
+  - [x] No agregar duplicadas
+  - [x] No votar en salas cerradas
+- [x] Error boundaries en React
+- [x] Retry logic para TMDB
+- [x] Mensajes de error amigables
+- [x] Manejo de offline
 
 ### 📦 FASE 15: Build y Deploy
 
@@ -365,4 +365,4 @@ MIT
 
 ---
 
-**Última actualización**: Marzo 29, 2026 - FASE 13 completada (UI/UX)
+**Última actualización**: Marzo 29, 2026 - FASE 14 completada (validaciones + resiliencia)

@@ -1,23 +1,25 @@
+import { RoomMovie } from "@/types/domain";
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
-  setDoc,
-  deleteDoc,
   getDocs,
-  query,
-  orderBy,
   onSnapshot,
+  orderBy,
+  query,
+  setDoc,
   type Unsubscribe,
-} from 'firebase/firestore';
-import { db } from './config';
-import { RoomMovie } from '@/types/domain';
+} from "firebase/firestore";
+import { db } from "./config";
+
+const MAX_MOVIES_PER_ROOM = 10;
 
 /**
  * Obtiene la referencia a la subcolección de películas de una sala
  */
 function getMoviesCollection(roomCode: string) {
-  return collection(db, 'rooms', roomCode, 'movies');
+  return collection(db, "rooms", roomCode, "movies");
 }
 
 /**
@@ -33,15 +35,33 @@ export async function addMovieToRoom(
     releaseDate: string;
     overview: string;
   },
-  addedBy: string
+  addedBy: string,
 ): Promise<RoomMovie> {
+  const roomRef = doc(db, "rooms", roomCode);
+  const roomSnap = await getDoc(roomRef);
+
+  if (!roomSnap.exists()) {
+    throw new Error("La sala no existe");
+  }
+
+  if (roomSnap.data().status !== "voting") {
+    throw new Error("La votacion ya cerro en esta sala");
+  }
+
   const moviesCol = getMoviesCollection(roomCode);
   const movieRef = doc(moviesCol, movie.id.toString());
 
   // Verificar si ya existe
   const existingMovie = await getDoc(movieRef);
   if (existingMovie.exists()) {
-    throw new Error('Esta película ya fue agregada a la sala');
+    throw new Error("Esta película ya fue agregada a la sala");
+  }
+
+  const moviesSnapshot = await getDocs(moviesCol);
+  if (moviesSnapshot.size >= MAX_MOVIES_PER_ROOM) {
+    throw new Error(
+      `La sala ya tiene el maximo de ${MAX_MOVIES_PER_ROOM} peliculas`,
+    );
   }
 
   const roomMovie: RoomMovie = {
@@ -70,7 +90,7 @@ export async function addMovieToRoom(
  */
 export async function getMoviesInRoom(roomCode: string): Promise<RoomMovie[]> {
   const moviesCol = getMoviesCollection(roomCode);
-  const q = query(moviesCol, orderBy('score', 'desc'));
+  const q = query(moviesCol, orderBy("score", "desc"));
   const snapshot = await getDocs(q);
 
   return snapshot.docs.map((doc) => {
@@ -95,7 +115,7 @@ export async function getMoviesInRoom(roomCode: string): Promise<RoomMovie[]> {
  */
 export async function getMovieInRoom(
   roomCode: string,
-  movieId: number
+  movieId: number,
 ): Promise<RoomMovie | null> {
   const moviesCol = getMoviesCollection(roomCode);
   const movieRef = doc(moviesCol, movieId.toString());
@@ -125,7 +145,7 @@ export async function getMovieInRoom(
  */
 export async function removeMovieFromRoom(
   roomCode: string,
-  movieId: number
+  movieId: number,
 ): Promise<void> {
   const moviesCol = getMoviesCollection(roomCode);
   const movieRef = doc(moviesCol, movieId.toString());
@@ -140,13 +160,13 @@ export async function updateMovieVotes(
   roomCode: string,
   movieId: number,
   upvotes: number,
-  downvotes: number
+  downvotes: number,
 ): Promise<void> {
   const moviesCol = getMoviesCollection(roomCode);
   const movieRef = doc(moviesCol, movieId.toString());
-  
+
   const score = upvotes - downvotes;
-  
+
   await setDoc(
     movieRef,
     {
@@ -154,7 +174,7 @@ export async function updateMovieVotes(
       downvotes,
       score,
     },
-    { merge: true }
+    { merge: true },
   );
 }
 
@@ -165,10 +185,10 @@ export async function updateMovieVotes(
 export function subscribeToMovies(
   roomCode: string,
   onMoviesChange: (movies: RoomMovie[]) => void,
-  onError?: (error: Error) => void
+  onError?: (error: Error) => void,
 ): Unsubscribe {
   const moviesCol = getMoviesCollection(roomCode);
-  const q = query(moviesCol, orderBy('score', 'desc'));
+  const q = query(moviesCol, orderBy("score", "desc"));
 
   return onSnapshot(
     q,
@@ -191,8 +211,8 @@ export function subscribeToMovies(
       onMoviesChange(movies);
     },
     (error) => {
-      console.error('Error in movies subscription:', error);
+      console.error("Error in movies subscription:", error);
       onError?.(error);
-    }
+    },
   );
 }

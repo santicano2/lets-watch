@@ -141,6 +141,10 @@ export default function SearchMovieScreen() {
       // Mostrar mensaje específico si la película ya existe
       if (error.message?.includes("ya existe")) {
         Alert.alert("Película duplicada", error.message);
+      } else if (error.message?.includes("maximo")) {
+        Alert.alert("Límite alcanzado", error.message);
+      } else if (error.message?.includes("cerro")) {
+        Alert.alert("Votación cerrada", "Ya no se pueden agregar películas");
       } else {
         Alert.alert("Error", "No se pudo agregar la película");
       }

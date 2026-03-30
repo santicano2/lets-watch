@@ -1,21 +1,21 @@
+import { Vote, VoteType } from "@/types/domain";
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
-  setDoc,
-  deleteDoc,
-  query,
-  where,
   getDocs,
-  writeBatch,
   onSnapshot,
+  query,
+  setDoc,
+  where,
+  writeBatch,
   type Unsubscribe,
-} from 'firebase/firestore';
-import { db } from './config';
-import { Vote, VoteType } from '@/types/domain';
-import { updateMovieVotes } from './movies';
+} from "firebase/firestore";
+import { db } from "./config";
+import { updateMovieVotes } from "./movies";
 
-const VOTES_COLLECTION = 'votes';
+const VOTES_COLLECTION = "votes";
 
 /**
  * Genera un ID único para un voto: {roomCode}_{movieId}_{userId}
@@ -35,8 +35,25 @@ export async function castVote(
   roomCode: string,
   movieId: number,
   userId: string,
-  voteType: VoteType
+  voteType: VoteType,
 ): Promise<void> {
+  const roomRef = doc(db, "rooms", roomCode);
+  const roomSnap = await getDoc(roomRef);
+
+  if (!roomSnap.exists()) {
+    throw new Error("La sala no existe");
+  }
+
+  if (roomSnap.data().status !== "voting") {
+    throw new Error("No se puede votar en una sala cerrada");
+  }
+
+  const movieRef = doc(db, "rooms", roomCode, "movies", movieId.toString());
+  const movieSnap = await getDoc(movieRef);
+  if (!movieSnap.exists()) {
+    throw new Error("La pelicula ya no existe en la sala");
+  }
+
   const voteId = getVoteId(roomCode, movieId, userId);
   const voteRef = doc(db, VOTES_COLLECTION, voteId);
   const voteSnap = await getDoc(voteRef);
@@ -72,7 +89,7 @@ export async function castVote(
 export async function getUserVote(
   roomCode: string,
   movieId: number,
-  userId: string
+  userId: string,
 ): Promise<Vote | null> {
   const voteId = getVoteId(roomCode, movieId, userId);
   const voteRef = doc(db, VOTES_COLLECTION, voteId);
@@ -97,13 +114,13 @@ export async function getUserVote(
  */
 export async function getUserVotesInRoom(
   roomCode: string,
-  userId: string
+  userId: string,
 ): Promise<Vote[]> {
   const votesCol = collection(db, VOTES_COLLECTION);
   const q = query(
     votesCol,
-    where('roomCode', '==', roomCode),
-    where('userId', '==', userId)
+    where("roomCode", "==", roomCode),
+    where("userId", "==", userId),
   );
   const snapshot = await getDocs(q);
 
@@ -125,13 +142,13 @@ export async function getUserVotesInRoom(
  */
 async function recalculateMovieVotes(
   roomCode: string,
-  movieId: number
+  movieId: number,
 ): Promise<void> {
   const votesCol = collection(db, VOTES_COLLECTION);
   const q = query(
     votesCol,
-    where('roomCode', '==', roomCode),
-    where('movieId', '==', movieId)
+    where("roomCode", "==", roomCode),
+    where("movieId", "==", movieId),
   );
   const snapshot = await getDocs(q);
 
@@ -140,9 +157,9 @@ async function recalculateMovieVotes(
 
   snapshot.docs.forEach((doc) => {
     const data = doc.data();
-    if (data.voteType === 'upvote') {
+    if (data.voteType === "upvote") {
       upvotes++;
-    } else if (data.voteType === 'downvote') {
+    } else if (data.voteType === "downvote") {
       downvotes++;
     }
   });
@@ -156,7 +173,7 @@ async function recalculateMovieVotes(
  */
 export async function deleteAllVotesInRoom(roomCode: string): Promise<void> {
   const votesCol = collection(db, VOTES_COLLECTION);
-  const q = query(votesCol, where('roomCode', '==', roomCode));
+  const q = query(votesCol, where("roomCode", "==", roomCode));
   const snapshot = await getDocs(q);
 
   const batch = writeBatch(db);
@@ -175,13 +192,13 @@ export function subscribeToUserVotes(
   roomCode: string,
   userId: string,
   onVotesChange: (votes: Map<number, VoteType>) => void,
-  onError?: (error: Error) => void
+  onError?: (error: Error) => void,
 ): Unsubscribe {
   const votesCol = collection(db, VOTES_COLLECTION);
   const q = query(
     votesCol,
-    where('roomCode', '==', roomCode),
-    where('userId', '==', userId)
+    where("roomCode", "==", roomCode),
+    where("userId", "==", userId),
   );
 
   return onSnapshot(
@@ -195,8 +212,8 @@ export function subscribeToUserVotes(
       onVotesChange(votesMap);
     },
     (error) => {
-      console.error('Error in votes subscription:', error);
+      console.error("Error in votes subscription:", error);
       onError?.(error);
-    }
+    },
   );
 }

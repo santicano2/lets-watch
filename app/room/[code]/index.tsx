@@ -347,9 +347,18 @@ export default function RoomScreen() {
       await Haptics.selectionAsync();
       // Registrar el voto - las suscripciones en tiempo real actualizarán la UI
       await castVote(roomCode, movieId, userId, voteType);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error voting:", error);
-      Alert.alert("Error", "No se pudo registrar el voto");
+      if (error.message?.includes("sala cerrada")) {
+        Alert.alert("Votación cerrada", "La sala ya no acepta votos");
+      } else if (error.message?.includes("ya no existe")) {
+        Alert.alert(
+          "Película no disponible",
+          "La película fue eliminada de la sala",
+        );
+      } else {
+        Alert.alert("Error", "No se pudo registrar el voto");
+      }
     }
   };
 
